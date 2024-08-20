@@ -1,5 +1,5 @@
 compile: simpleshell.c
 	gcc -o simpleshell simpleshell.c
 
-run: simpleshell.c
-	./simpleshell /usr/bin/
+run: simpleshell
+	./simpleshell /usr:/usr/bin
