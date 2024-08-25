@@ -1,4 +1,4 @@
-// Desenvolvido por: Antônio Hideto Borges Kotsubo (236041) - MC504_A
+// Desenvolvido por: Antônio Hideto Borges Kotsubo (236041) - MC504A_2024S2
 
 #include <unistd.h>
 #include <stdio.h>
