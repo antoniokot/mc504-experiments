@@ -6,8 +6,6 @@
 #include "kernel/types.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
-// #include "stdlib.h"
-#include "graph.h"
 
 int main (void) {
 
@@ -19,9 +17,9 @@ int main (void) {
 
   int sum = 0;
 
-  // for (int i = 10; i > 0; i--) {
-  //   sum += shortestPath();
-  // }
+  for (int i = 10; i > 0; i--) {
+    sum += shortestPath();
+  }
 
   printf("Result: %d\n", sum);
 
