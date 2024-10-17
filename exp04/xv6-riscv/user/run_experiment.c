@@ -3,7 +3,6 @@
   Desenvolvido por: Antônio Hideto Borges Kotsubo (236041)
 */ 
 
-
 #include "kernel/types.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
