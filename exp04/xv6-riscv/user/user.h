@@ -1,4 +1,5 @@
 struct stat;
+struct Node;
 
 // system calls
 int fork(void);
@@ -42,6 +43,9 @@ void *memcpy(void *, const void *, uint);
 void* malloc(uint);
 void free(void*);
 
+// random.c
+uint random(int);
+
 // graph.c
 int shortestPath(void);
-int getRandom(int, int);
+struct Node ***createDigraphsLsit(int);
