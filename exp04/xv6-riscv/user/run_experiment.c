@@ -1,6 +1,7 @@
 /*
   Sistemas Operacionais - MC504A_2024S2
   Desenvolvido por: Antônio Hideto Borges Kotsubo (236041)
+                    Pedro Sanchez Bitencourt (231133)
 */ 
 
 #include "kernel/types.h"
@@ -15,7 +16,7 @@ int main (void) {
   printf("Rounds of CPU-Bound experiments: %d\n", n_cpu_exp);
   printf("Rounds of IO-Bound experiments: %d\n", n_io_exp);
 
-  struct Node*** digraphsList = createDigraphsLsit(1000);
+  struct Node*** digraphsList = createDigraphsList(1000);
 
   int sum = 0;
 

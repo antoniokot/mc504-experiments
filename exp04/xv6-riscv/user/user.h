@@ -48,4 +48,4 @@ uint random(int);
 
 // graph.c
 int shortestPath(void);
-struct Node ***createDigraphsLsit(int);
+struct Node ***createDigraphsList(int);

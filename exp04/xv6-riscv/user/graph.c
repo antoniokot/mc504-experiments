@@ -76,7 +76,7 @@ void createDigraph(Node* adjList[], int num_vertex, int num_edge) {
   }
 }
 
-Node*** createDigraphsLsit(int num_digraphs) {
+Node*** createDigraphsList(int num_digraphs) {
   Node*** digraphsList = NULL;
 
   for (int i = 0; i < num_digraphs; i++) {
