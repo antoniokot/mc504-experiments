@@ -49,3 +49,6 @@ uint random(int);
 // graph.c
 int shortestPath(void);
 struct Node ***createDigraphsList(int);
+
+// random_write.c
+void random_write(void);
