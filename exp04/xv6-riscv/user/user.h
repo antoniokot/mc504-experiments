@@ -47,8 +47,11 @@ void free(void*);
 uint random(int);
 
 // graph.c
-int shortestPath(void);
-struct Node ***createDigraphsList(int);
+struct Node*** createDigraphsList(int);
+int shortestPath(struct Node**);
+
+// cpu_bound.c
+void run_cpu_bound_experiment();
 
 // random_write.c
 void random_write(void);

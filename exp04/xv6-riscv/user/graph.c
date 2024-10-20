@@ -4,10 +4,10 @@
 #include "user/user.h"
 #include <stddef.h>
 
-#define MAX_VERTEX 200
-#define MIN_VERTEX 100
-#define MAX_EDGES 400
-#define MIN_EDGES 50
+#define MAX_VERTEX 20
+#define MIN_VERTEX 10
+#define MAX_EDGES 40
+#define MIN_EDGES 5
 
 // struct for nodes
 typedef struct Node {
@@ -76,25 +76,58 @@ void createDigraph(Node* adjList[], int num_vertex, int num_edge) {
   }
 }
 
+void imprimirDigrafo(Node* listaAdj[], int vertices) {
+  for (int i = 0; i < vertices; i++) {
+      printf("Vértice %d:", i);
+      Node* temp = listaAdj[i];
+      while (temp != NULL) {
+          printf(" -> %d", temp->destination);
+          temp = temp->next;
+      }
+      printf("\n");
+  }
+}
+
 Node*** createDigraphsList(int num_digraphs) {
-  Node*** digraphsList = NULL;
+  Node*** digraphsList = (Node***)malloc(sizeof(Node**) * num_digraphs);
 
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = (random(MAX_VERTEX - MIN_VERTEX + 1)) + MIN_VERTEX;
     int num_egdes = (random(MAX_EDGES - MIN_EDGES + 1)) + MIN_EDGES;
 
-    digraphsList = (Node***)malloc((sizeof(Node) * num_vertex) * num_digraphs);
+    printf("Número de vértices: %d\n", num_vertex);
+    printf("Número de arestas: %d\n", num_egdes);
 
-    Node** adjList = (Node**)malloc(sizeof(Node) * num_vertex);
+    Node** adjList = (Node**)malloc(sizeof(Node*) * num_vertex);
 
     createDigraph(adjList, num_vertex, num_egdes);
 
     digraphsList[i] = adjList;
+    imprimirDigrafo(digraphsList[0], num_vertex);
   }
 
   return digraphsList;
 }
 
-int shortestPath() {
+void minDistance(int *distance[], int source, int destination) {
+
+}
+
+int shortestPath(Node** graph, int source, int num_vertex) {
+  int dist[num_vertex];
+  int processed[num_vertex];
+
+  for (int i = 0; i < num_vertex; i++) {
+    dist[i] = MAX_VERTEX + 1;
+    processed[i] = 0;
+  }
+
+  dist[source] = 0;
+
+  Node* curr = graph[source];
+  while(curr->next != NULL) {
+    minDistance(dist, source, curr->next);
+  }
+
   return 1;
 }
