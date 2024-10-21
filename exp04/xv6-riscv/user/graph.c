@@ -16,6 +16,11 @@ typedef struct Node {
   struct Node* next;
 } Node;
 
+typedef struct GraphsList {
+  struct Node*** graphs;
+  int** num_vertex;
+} GraphsList;
+
 // function to create a new node 
 Node* makeNode(int destination) {
   Node* newNode = (Node*)malloc(sizeof(Node));
@@ -89,8 +94,9 @@ void imprimirDigrafo(Node* listaAdj[], int vertices) {
   }
 }
 
-Node*** createDigraphsList(int num_digraphs) {
+GraphsList* createDigraphsList(int num_digraphs) {
   Node*** digraphsList = (Node***)malloc(sizeof(Node**) * num_digraphs);
+  int** lengths = (int**)malloc(sizeof(int) * num_digraphs);
 
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = (random(MAX_VERTEX - MIN_VERTEX + 1)) + MIN_VERTEX;
@@ -102,12 +108,18 @@ Node*** createDigraphsList(int num_digraphs) {
     Node** adjList = (Node**)malloc(sizeof(Node*) * num_vertex);
 
     createDigraph(adjList, num_vertex, num_egdes);
+    *lengths[i] = num_vertex;
 
     digraphsList[i] = adjList;
     imprimirDigrafo(digraphsList[0], num_vertex);
   }
 
-  return digraphsList;
+  GraphsList* list = (GraphsList*)malloc(sizeof(GraphsList));
+
+  list->graphs = digraphsList;
+  list->num_vertex = lengths;
+
+  return list;
 }
 
 int closest(int distance[], int processed[], int num_vertex) {
