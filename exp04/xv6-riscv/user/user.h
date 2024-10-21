@@ -48,13 +48,13 @@ uint random(int);
 
 // graph.c
 struct Node*** createDigraphsList(int);
-int shortestPath(struct Node**);
+void shortestPath(struct Node*[], int);
 
 // cpu_bound.c
-void run_cpu_bound_experiment();
+void run_cpu_bound_experiment(int);
 
-// io_bound.c
-void run_io_bound_experiment(int rounds);
+// // io_bound.c
+// void run_io_bound_experiment(int);
 
-// random_write.c
-void random_write(void);
+// // random_write.c
+// void random_write(void);

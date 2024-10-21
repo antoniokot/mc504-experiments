@@ -2,11 +2,10 @@
 #include "kernel/fcntl.h"
 #include "user/user.h"
 
-void run_cpu_bound_experiment() {
-  struct Node*** digraphsList = createDigraphsList(1);
+void run_cpu_bound_experiment(int rounds) {
+  for (int i = 0; i < rounds; i++) {
+    struct Node*** digraphsList = createDigraphsList(1);
 
-  for(int i = 0; i < 1; i++) {  
-    int size = shortestPath(digraphsList[0]);
-    printf("Total: %d\n", size);
+    shortestPath(digraphsList[0], 0);
   }
 }

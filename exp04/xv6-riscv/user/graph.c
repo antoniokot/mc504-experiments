@@ -8,6 +8,7 @@
 #define MIN_VERTEX 10
 #define MAX_EDGES 40
 #define MIN_EDGES 5
+#define MAX_DISTANCE MAX_VERTEX + 1
 
 // struct for nodes
 typedef struct Node {
@@ -109,25 +110,53 @@ Node*** createDigraphsList(int num_digraphs) {
   return digraphsList;
 }
 
-void minDistance(int *distance[], int source, int destination) {
+int closest(int distance[], int processed[], int num_vertex) {
+  int min_index = -1;
+  int min = MAX_DISTANCE;
 
+  for (int i = 0; i < num_vertex; i++) {
+    if(!processed[i] && distance[i] < min) {
+      min_index = i;
+      min = distance[i];
+    }
+  }
+
+  return min_index;
 }
 
-int shortestPath(Node** graph, int source, int num_vertex) {
+void relax(int dist[], int proc[], int source, int dest) {
+  if (!proc[dest] && dist[dest] > dist[source] + 1) {
+    dist[dest] = dist[source] + 1;
+  }
+}
+
+void shortestPath(Node* graph[], int source, int num_vertex) {
   int dist[num_vertex];
   int processed[num_vertex];
 
   for (int i = 0; i < num_vertex; i++) {
-    dist[i] = MAX_VERTEX + 1;
+    dist[i] = MAX_DISTANCE;
     processed[i] = 0;
   }
 
   dist[source] = 0;
 
-  Node* curr = graph[source];
-  while(curr->next != NULL) {
-    minDistance(dist, source, curr->next);
+  for (int i = 0; i < num_vertex - 1; i++) {
+    int u = closest(dist, processed, num_vertex);
+    processed[u] = 1;
+
+    // adjacency list of u
+    Node* curr = graph[u];
+
+    while(curr != NULL) {
+      int v = curr->destination;
+
+      relax(dist, processed, u, v);
+      curr = curr->next;
+    }  
   }
 
-  return 1;
+  for (int i = 0; i < num_vertex; i++) {
+    printf("Distância do vértice %d até o vértice %d: %d\n", source, i, dist[i]);
+  }
 }
