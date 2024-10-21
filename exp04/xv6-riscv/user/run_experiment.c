@@ -16,6 +16,7 @@ int main (void) {
   printf("Rounds of IO-Bound experiments: %d\n", n_io_exp);
 
   run_cpu_bound_experiment();
+  run_io_bound_experiment(n_io_exp);
 
   // for(int i = n_cpu_exp; i > 0; i--) {
   //   run_cpu_bound_experiment();

@@ -53,5 +53,8 @@ int shortestPath(struct Node**);
 // cpu_bound.c
 void run_cpu_bound_experiment();
 
+// io_bound.c
+void run_io_bound_experiment(int rounds);
+
 // random_write.c
 void random_write(void);
