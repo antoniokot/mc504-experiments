@@ -1,5 +1,4 @@
 struct stat;
-struct GraphsList;
 struct Node;
 
 // system calls
@@ -48,8 +47,7 @@ void free(void*);
 uint random(int);
 
 // graph.c
-struct GraphsList* createDigraphsList(int);
-void shortestPath(struct Node*[], int, int);
+void solveShortestPaths(int);
 
 // cpu_bound.c
 void run_cpu_bound_experiment(int);

@@ -18,7 +18,7 @@ typedef struct Node {
 
 typedef struct GraphsList {
   struct Node*** graphs;
-  int** num_vertex;
+  int *lengths;
 } GraphsList;
 
 // function to create a new node 
@@ -60,7 +60,7 @@ int existsEdge(Node* adjList[], int origin, int destination) {
 }
 
 // Função para gerar um dígrafo aleatório
-void createDigraph(Node* adjList[], int num_vertex, int num_edge) {
+void createGraph(Node* adjList[], int num_vertex, int num_edge) {
   int origin, destination;
 
   // Initialize the adjacency list with NULL
@@ -72,7 +72,7 @@ void createDigraph(Node* adjList[], int num_vertex, int num_edge) {
   int countEgdes = 0;
   while (countEgdes < num_edge) {
     origin = random(num_vertex);
-    destination = random(num_edge);
+    destination = random(num_vertex);
 
     // Not loop edge and egde does not already exist 
     if (origin != destination && !existsEdge(adjList, origin, destination)) {
@@ -94,32 +94,34 @@ void imprimirDigrafo(Node* listaAdj[], int vertices) {
   }
 }
 
-GraphsList* createDigraphsList(int num_digraphs) {
-  Node*** digraphsList = (Node***)malloc(sizeof(Node**) * num_digraphs);
-  int** lengths = (int**)malloc(sizeof(int) * num_digraphs);
+GraphsList* createGraphsList(int num_digraphs) {
+  Node*** list = (Node***)malloc(sizeof(Node**) * num_digraphs);
+  int* lengths = (int*)malloc(sizeof(int) * num_digraphs);
+
+  printf("Creating %d graphs...\n", num_digraphs);
 
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = (random(MAX_VERTEX - MIN_VERTEX + 1)) + MIN_VERTEX;
     int num_egdes = (random(MAX_EDGES - MIN_EDGES + 1)) + MIN_EDGES;
 
-    printf("Número de vértices: %d\n", num_vertex);
-    printf("Número de arestas: %d\n", num_egdes);
+    printf("Graph %d:\n", i+1);
+    printf("Number of vertex: %d\n", num_vertex);
+    printf("Number of egdes: %d\n\n", num_egdes);
 
     Node** adjList = (Node**)malloc(sizeof(Node*) * num_vertex);
 
-    createDigraph(adjList, num_vertex, num_egdes);
-    *lengths[i] = num_vertex;
+    createGraph(adjList, num_vertex, num_egdes);
 
-    digraphsList[i] = adjList;
-    imprimirDigrafo(digraphsList[0], num_vertex);
+    list[i] = adjList;
+    lengths[i] = num_vertex;
   }
 
-  GraphsList* list = (GraphsList*)malloc(sizeof(GraphsList));
+  GraphsList* result = (GraphsList*)malloc(sizeof(GraphsList));
 
-  list->graphs = digraphsList;
-  list->num_vertex = lengths;
+  result->graphs = list;
+  result->lengths = lengths;
 
-  return list;
+  return result;
 }
 
 int closest(int distance[], int processed[], int num_vertex) {
@@ -127,7 +129,7 @@ int closest(int distance[], int processed[], int num_vertex) {
   int min = MAX_DISTANCE;
 
   for (int i = 0; i < num_vertex; i++) {
-    if(!processed[i] && distance[i] < min) {
+    if(!processed[i] && distance[i] <= min) {
       min_index = i;
       min = distance[i];
     }
@@ -153,7 +155,7 @@ void shortestPath(Node* graph[], int source, int num_vertex) {
 
   dist[source] = 0;
 
-  for (int i = 0; i < num_vertex - 1; i++) {
+  for (int i = 0; i < num_vertex; i++) {
     int u = closest(dist, processed, num_vertex);
     processed[u] = 1;
 
@@ -169,6 +171,35 @@ void shortestPath(Node* graph[], int source, int num_vertex) {
   }
 
   for (int i = 0; i < num_vertex; i++) {
-    printf("Distância do vértice %d até o vértice %d: %d\n", source, i, dist[i]);
+    printf("Distance from vertex %d to vertex %d: %d\n", source, i, dist[i]);
   }
+}
+
+void solveShortestPaths(int num_graphs) {
+  GraphsList* graphs = createGraphsList(num_graphs);
+
+  for (int i = 0; i < num_graphs; i++) {
+    Node** adjList = graphs->graphs[i];
+    int num_vertex = graphs->lengths[i];
+
+    shortestPath(adjList, 0, num_vertex);
+  }
+
+  // for (int i = 0; i < num_graphs; i++) {
+  //   Node* curr = graph[u];
+
+  //   while(curr != NULL) {
+  //     int v = curr->destination;
+
+  //     relax(dist, processed, u, v);
+  //     curr = curr->next;
+  //   }
+
+  //   for(int j = 0; j < graphs->lengths[i]; j++) {
+  //     Node* curr = graphs->graphs[i]
+
+  //   free(graphs->graphs[i]);
+  // }
+
+  // free(graphs->lengths);
 }

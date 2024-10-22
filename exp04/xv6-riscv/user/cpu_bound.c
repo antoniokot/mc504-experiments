@@ -1,14 +1,22 @@
 #include "kernel/types.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
+#include <stddef.h>
 
 void run_cpu_bound_experiment(int rounds) {
+  printf("\nRunning CPU-bound experiment with %d rounds...\n", rounds);
+
   for (int i = 0; i < rounds; i++) {
-    struct GraphsList* graphsList = createDigraphsList(1);
+    printf("\n=============================================\n");
+    printf("\nRunning round %d...\n", i+1);
 
-    struct Node** graph = graphsList->graphs[0];
-    int num_vertex = *graphsList->num_vertex[0];
-
-    shortestPath(graph, 0, num_vertex);
+    int pid = fork();
+    
+    if(pid == 0) {
+      solveShortestPaths(1);
+    } else {
+      int ret = wait(&pid);  // wait for the child process to finish
+      kill(ret);
+    }
   }
 }
