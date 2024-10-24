@@ -5,6 +5,9 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sleeplock.h"
+#include "fs.h"
+#include "file.h"
 
 uint64
 sys_exit(void)
@@ -90,4 +93,45 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_lseek(void)
+{
+  int fd;
+  int offset;
+  int whence;
+  struct file *f;
+
+  argint(0, &fd);
+  argint(1, &offset);
+  argint(2, &whence);
+  
+  if((f = myproc()->ofile[fd]) == 0)
+    return -1;
+
+  if(f->type != FD_INODE)
+    return -1;
+
+  switch (whence) {
+    case 0: // SEEK_SET
+      if (offset < 0)
+        return -1;
+      f->off = offset;
+      break;
+    case 1: // SEEK_CUR
+      if (f->off + offset < 0)
+        return -1;
+      f->off += offset;
+      break;
+    case 2: // SEEK_END
+      if (f->ip->size + offset < 0)
+        return -1;
+      f->off = f->ip->size + offset;
+      break;
+    default:
+      return -1;
+  }
+
+  return f->off;
 }

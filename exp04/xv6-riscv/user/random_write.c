@@ -1,63 +1,78 @@
+#include "kernel/types.h"
+#include "kernel/fcntl.h"
 #include "user/user.h"
-#include <stdlib.h>
-#include <time.h>
 
 #define LINES 100
 #define CHAR_PER_LINE 100
 #define PERMUTATIONS 50
+#define FILENAME "random_file.txt"
 
 char random_char() {
-    return '!' + rand() % 94;
+    return '!' + random(94);
 }
 
-void permute_lines(FILE *file) {
-    int line1 = rand() % LINES;
-    int line2 = rand() % LINES;
-    char buffer1[CHAR_PER_LINE + 1];
-    char buffer2[CHAR_PER_LINE + 1];
+void swap_chars(int fd, int pos1, int pos2) {
+    char buf1, buf2;
 
-    fseek(file, line1 * (CHAR_PER_LINE + 1), SEEK_SET);
-    fgets(buffer1, sizeof(buffer1), file);
-    fseek(file, line2 * (CHAR_PER_LINE + 1), SEEK_SET);
-    fgets(buffer2, sizeof(buffer2), file);
+    lseek(fd, pos1, 0);
+    read(fd, &buf1, 1);
 
-    fseek(file, line1 * (CHAR_PER_LINE + 1), SEEK_SET);
-    fputs(buffer2, file);
-    fseek(file, line2 * (CHAR_PER_LINE + 1), SEEK_SET);
-    fputs(buffer1, file);
+    lseek(fd, pos2, 0);
+    read(fd, &buf2, 1);
+
+    lseek(fd, pos1, 0);
+    write(fd, &buf2, 1);
+
+    lseek(fd, pos2, 0);
+    write(fd, &buf1, 1);
 }
 
 void random_write() {
-    FILE *file;
-    char filename[] = "random_chars.txt";
-    char line[CHAR_PER_LINE + 1];
-
-    srand(time(NULL));
-
-    file = fopen(filename, "w+");
-    if (file == NULL) {
-        perror("Failed to create file");
-        return 1;
+    int fd = open(FILENAME, O_CREATE | O_WRONLY);
+    printf("Creating file...\n");
+    if (fd == -1) {
+        printf("Error opening file\n");
+        exit(1);
     }
 
+    char *buffer = malloc(LINES * (CHAR_PER_LINE + 1));
+    if (buffer == 0) {
+        printf("Error allocating memory\n");
+        close(fd);
+        exit(1);
+    }
+
+    printf("Writing lines...\n");
+    char *buf_ptr = buffer;
     for (int i = 0; i < LINES; i++) {
         for (int j = 0; j < CHAR_PER_LINE; j++) {
-            line[j] = random_char();
+            *buf_ptr++ = random_char();
         }
-        line[CHAR_PER_LINE] = '\n';
-        fwrite(line, sizeof(char), CHAR_PER_LINE + 1, file);
+        *buf_ptr++ = '\n';
     }
 
-    for (int i = 0; i < PERMUTATIONS; i++) {
-        permute_lines(file);
+    write(fd, buffer, LINES * (CHAR_PER_LINE + 1));
+
+    fd = open(FILENAME, O_RDWR);
+    if (fd == -1) {
+        printf("Error reopening file\n");
+        exit(1);
     }
 
-    fclose(file);
-
-    if (remove(filename) != 0) {
-        perror("Failed to delete file");
-        return 1;
+    printf("Permuting characters...\n");
+    for (int i = 0; i < 50; i++) {
+        int pos1 = random(LINES * (CHAR_PER_LINE + 1));
+        int pos2 = random(LINES * (CHAR_PER_LINE + 1));
+        if (pos1 != pos2) {
+            swap_chars(fd, pos1, pos2);
+        }
     }
 
-    printf("File created, permuted, and deleted successfully.\n");
+    close(fd);
+
+    printf("Deleting file...\n\n");
+    if (unlink(FILENAME) == -1) {
+        printf("Error deleting file\n");
+        exit(1);
+    }
 }

@@ -23,6 +23,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int lseek(int fd, int offset, int whence);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -56,4 +57,5 @@ void run_cpu_bound_experiment(int);
 void run_io_bound_experiment(int);
 
 // random_write.c
+void swap_chars(int fd, int pos1, int pos2);
 void random_write(void);
