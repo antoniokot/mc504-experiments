@@ -53,13 +53,15 @@ void random_write() {
 
     write(fd, buffer, LINES * (CHAR_PER_LINE + 1));
 
+    free(buffer);
+
     fd = open(FILENAME, O_RDWR);
     if (fd == -1) {
         printf("Error reopening file\n");
         exit(1);
     }
 
-    printf("Permuting characters...\n");
+    printf("Permutating characters...\n");
     for (int i = 0; i < 50; i++) {
         int pos1 = random(LINES * (CHAR_PER_LINE + 1));
         int pos2 = random(LINES * (CHAR_PER_LINE + 1));
