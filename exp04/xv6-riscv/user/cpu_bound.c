@@ -13,7 +13,7 @@ void run_cpu_bound_experiment(int rounds) {
     int pid = fork();
     
     if(pid == 0) {
-      solveShortestPaths(1);
+      solve_shortest_paths(1000);
     } else {
       int ret = wait(&pid);  // wait for the child process to finish
       kill(ret);

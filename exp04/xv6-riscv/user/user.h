@@ -46,9 +46,10 @@ void free(void*);
 
 // random.c
 uint random(int);
+void next_seed();
 
 // graph.c
-void solveShortestPaths(int);
+void solve_shortest_paths(int);
 
 // cpu_bound.c
 void run_cpu_bound_experiment(int);

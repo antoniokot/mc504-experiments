@@ -4,10 +4,10 @@
 #include "user/user.h"
 #include <stddef.h>
 
-#define MAX_VERTEX 20
-#define MIN_VERTEX 10
-#define MAX_EDGES 40
-#define MIN_EDGES 5
+#define MAX_VERTEX 200
+#define MIN_VERTEX 100
+#define MAX_EDGES 400
+#define MIN_EDGES 50
 #define MAX_DISTANCE MAX_VERTEX + 1
 
 // struct for nodes
@@ -16,40 +16,27 @@ typedef struct Node {
   struct Node* next;
 } Node;
 
+// struct for the functions returns
 typedef struct GraphsList {
   struct Node*** graphs;
   int *lengths;
 } GraphsList;
 
-// function to create a new node 
-Node* makeNode(int destination) {
+Node* make_node(int destination) {
   Node* newNode = (Node*)malloc(sizeof(Node));
   newNode->destination = destination;
   newNode->next = NULL;
   return newNode;
 }
 
-/**
- * @brief Adds a new edge (connection) to the graph.
- *
- * This function creates a new node with the given destination and adds it to the adjacency list of the origin node.
- * If the adjacency list of the origin node is empty, the new node becomes the head of the list. Otherwise, the new node is
- * inserted at the beginning of the list.
- *
- * @param listaAdj The adjacency list of the graph. It is an array of pointers to Node structures, where each pointer
- * represents the head of a linked list of adjacent nodes for a specific vertex.
- * @param origin The index of the origin vertex.
- * @param destination The index of the destination vertex.
- */
-void addEdge(Node* adjList[], int origin, int destination) {
-  Node* newNode = makeNode(destination);
-  newNode->next = adjList[origin];
-  adjList[origin] = newNode;
+void add_edge(Node* adj_list[], int origin, int destination) {
+  Node* newNode = make_node(destination);
+  newNode->next = adj_list[origin];
+  adj_list[origin] = newNode;
 }
 
-// Função para verificar se uma aresta já existe
-int existsEdge(Node* adjList[], int origin, int destination) {
-  Node* temp = adjList[origin];
+int exists_edge(Node* adj_list[], int origin, int destination) {
+  Node* temp = adj_list[origin];
   while (temp != NULL) {
     if (temp->destination == destination) {
       return 1; // edge already exists
@@ -59,13 +46,12 @@ int existsEdge(Node* adjList[], int origin, int destination) {
   return 0;
 }
 
-// Função para gerar um dígrafo aleatório
-void createGraph(Node* adjList[], int num_vertex, int num_edge) {
+void create_graph(Node* adj_list[], int num_vertex, int num_edge) {
   int origin, destination;
 
   // Initialize the adjacency list with NULL
   for (int i = 0; i < num_vertex; i++) {
-    adjList[i] = NULL;
+    adj_list[i] = NULL;
   }
 
   // Create random edges
@@ -75,30 +61,33 @@ void createGraph(Node* adjList[], int num_vertex, int num_edge) {
     destination = random(num_vertex);
 
     // Not loop edge and egde does not already exist 
-    if (origin != destination && !existsEdge(adjList, origin, destination)) {
-      addEdge(adjList, origin, destination); // add edge
+    if (origin != destination && !exists_edge(adj_list, origin, destination)) {
+      add_edge(adj_list, origin, destination); // add edge
       countEgdes++;
-    }
+    } 
+
+    next_seed();
   }
 }
 
-void imprimirDigrafo(Node* listaAdj[], int vertices) {
+void print_graph(Node* listaAdj[], int vertices) {
   for (int i = 0; i < vertices; i++) {
-      printf("Vértice %d:", i);
-      Node* temp = listaAdj[i];
-      while (temp != NULL) {
-          printf(" -> %d", temp->destination);
-          temp = temp->next;
-      }
-      printf("\n");
+    printf("Vértice %d:", i);
+
+    Node* temp = listaAdj[i];
+    while (temp != NULL) {
+      printf(" -> %d", temp->destination);
+      temp = temp->next;
+    }
+    printf("\n");
   }
 }
 
-GraphsList* createGraphsList(int num_digraphs) {
+GraphsList* create_graphs_list(int num_digraphs) {
   Node*** list = (Node***)malloc(sizeof(Node**) * num_digraphs);
   int* lengths = (int*)malloc(sizeof(int) * num_digraphs);
 
-  printf("Creating %d graphs...\n", num_digraphs);
+  printf("Creating %d graph(s)...\n", num_digraphs);
 
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = (random(MAX_VERTEX - MIN_VERTEX + 1)) + MIN_VERTEX;
@@ -108,11 +97,11 @@ GraphsList* createGraphsList(int num_digraphs) {
     printf("Number of vertex: %d\n", num_vertex);
     printf("Number of egdes: %d\n\n", num_egdes);
 
-    Node** adjList = (Node**)malloc(sizeof(Node*) * num_vertex);
+    Node** adj_list = (Node**)malloc(sizeof(Node*) * num_vertex);
 
-    createGraph(adjList, num_vertex, num_egdes);
+    create_graph(adj_list, num_vertex, num_egdes);
 
-    list[i] = adjList;
+    list[i] = adj_list;
     lengths[i] = num_vertex;
   }
 
@@ -144,7 +133,7 @@ void relax(int dist[], int proc[], int source, int dest) {
   }
 }
 
-void shortestPath(Node* graph[], int source, int num_vertex) {
+void shortest_path(Node* graph[], int source, int num_vertex) {
   int dist[num_vertex];
   int processed[num_vertex];
 
@@ -170,36 +159,42 @@ void shortestPath(Node* graph[], int source, int num_vertex) {
     }  
   }
 
-  for (int i = 0; i < num_vertex; i++) {
-    printf("Distance from vertex %d to vertex %d: %d\n", source, i, dist[i]);
-  }
+  // for (int i = 0; i < num_vertex; i++) {
+  //   printf("Distance from vertex %d to vertex %d: %d\n", source, i, dist[i]);
+  // }
 }
 
-void solveShortestPaths(int num_graphs) {
-  GraphsList* graphs = createGraphsList(num_graphs);
-
+void solve_shortest_paths(int num_graphs) {
+  GraphsList* graphs = create_graphs_list(num_graphs);
+  
   for (int i = 0; i < num_graphs; i++) {
-    Node** adjList = graphs->graphs[i];
+    printf("Solving shortest path (%d)...\n", i+1);
+    Node** adj_list = graphs->graphs[i];
     int num_vertex = graphs->lengths[i];
 
-    shortestPath(adjList, 0, num_vertex);
+    shortest_path(adj_list, 0, num_vertex);
+    printf("Shortest path solved.\n");
   }
 
-  // for (int i = 0; i < num_graphs; i++) {
-  //   Node* curr = graph[u];
 
-  //   while(curr != NULL) {
-  //     int v = curr->destination;
+  for (int i = 0; i < num_graphs; i++) {
+    Node** graph = graphs->graphs[i];
+    int num_vertex = graphs->lengths[i];
 
-  //     relax(dist, processed, u, v);
-  //     curr = curr->next;
-  //   }
+    for(int j = 0; j < num_vertex; j++) {
+      Node* curr = graph[j];
 
-  //   for(int j = 0; j < graphs->lengths[i]; j++) {
-  //     Node* curr = graphs->graphs[i]
+      while(curr != NULL) {
+        Node* copy = curr;
+        curr = curr->next;
+        free(copy);
+      }  
+    }
 
-  //   free(graphs->graphs[i]);
-  // }
+    free(graph);
+  }
 
-  // free(graphs->lengths);
+  free(graphs->graphs);
+  free(graphs->lengths);
+  free(graphs);
 }

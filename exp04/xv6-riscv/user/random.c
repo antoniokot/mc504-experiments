@@ -1,3 +1,8 @@
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
+
 // Definir as constantes do gerador congruente linear
 #define A 1664525
 #define C 1013904223
@@ -14,4 +19,9 @@ unsigned int random(int max) {
 // Função para alterar a semente inicial
 void set_seed(unsigned int new_seed) {
     seed = new_seed;
+}
+
+void next_seed() {
+    uint next_seed = random(20000000);
+    set_seed(next_seed);
 }
