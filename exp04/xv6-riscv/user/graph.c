@@ -46,27 +46,21 @@ int exists_edge(Node* adj_list[], int origin, int destination) {
   return 0;
 }
 
-void create_graph(Node* adj_list[], int num_vertex, int num_edge) {
-  int origin, destination;
-
-  // Initialize the adjacency list with NULL
-  for (int i = 0; i < num_vertex; i++) {
-    adj_list[i] = NULL;
-  }
+void create_graph(Node* adj_list[], int num_vertex, int num_edges) {
+  int origin = 0;
+  int destination = 0;
 
   // Create random edges
   int countEgdes = 0;
-  while (countEgdes < num_edge) {
-    origin = random(num_vertex);
-    destination = random(num_vertex);
+  while (countEgdes < num_edges) {
+    origin = random_range(0, num_vertex-1);
+    destination = random_range(0, num_vertex-1);
 
     // Not loop edge and egde does not already exist 
     if (origin != destination && !exists_edge(adj_list, origin, destination)) {
       add_edge(adj_list, origin, destination); // add edge
       countEgdes++;
-    } 
-
-    next_seed();
+    }
   }
 }
 
@@ -90,19 +84,23 @@ GraphsList* create_graphs_list(int num_digraphs) {
   printf("Creating %d graph(s)...\n", num_digraphs);
 
   for (int i = 0; i < num_digraphs; i++) {
-    int num_vertex = (random(MAX_VERTEX - MIN_VERTEX + 1)) + MIN_VERTEX;
-    int num_egdes = (random(MAX_EDGES - MIN_EDGES + 1)) + MIN_EDGES;
+    int num_vertex = random_range(MIN_VERTEX, MAX_VERTEX); // 100 - 200 vértices -> 150 vértices [0, 150]
+    int num_egdes = random_range(MIN_EDGES, MAX_EDGES);
 
-    printf("Graph %d:\n", i+1);
-    printf("Number of vertex: %d\n", num_vertex);
-    printf("Number of egdes: %d\n\n", num_egdes);
-
-    Node** adj_list = (Node**)malloc(sizeof(Node*) * num_vertex);
-
-    create_graph(adj_list, num_vertex, num_egdes);
-
-    list[i] = adj_list;
+    list[i] = (Node**)malloc(sizeof(Node*) * num_vertex);
     lengths[i] = num_vertex;
+
+    if(list[i] == NULL) {
+      printf("Error allocating memory for adj_list.\n");
+      exit(1);
+    }
+
+    // Initialize the adjacency list with NULL
+    for (int j = 0; j < num_vertex; j++) {
+      list[i][j] = NULL;
+    }
+
+    create_graph(list[i], num_vertex, num_egdes);
   }
 
   GraphsList* result = (GraphsList*)malloc(sizeof(GraphsList));
@@ -158,24 +156,19 @@ void shortest_path(Node* graph[], int source, int num_vertex) {
       curr = curr->next;
     }  
   }
-
-  // for (int i = 0; i < num_vertex; i++) {
-  //   printf("Distance from vertex %d to vertex %d: %d\n", source, i, dist[i]);
-  // }
 }
 
 void solve_shortest_paths(int num_graphs) {
   GraphsList* graphs = create_graphs_list(num_graphs);
   
+  printf("Solving shortest paths...\n");
   for (int i = 0; i < num_graphs; i++) {
-    printf("Solving shortest path (%d)...\n", i+1);
     Node** adj_list = graphs->graphs[i];
     int num_vertex = graphs->lengths[i];
 
     shortest_path(adj_list, 0, num_vertex);
-    printf("Shortest path solved.\n");
   }
-
+  printf("Shortest paths solved.\n");
 
   for (int i = 0; i < num_graphs; i++) {
     Node** graph = graphs->graphs[i];

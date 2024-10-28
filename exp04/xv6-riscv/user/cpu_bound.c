@@ -12,11 +12,17 @@ void run_cpu_bound_experiment(int rounds) {
 
     int pid = fork();
     
-    if(pid == 0) {
+    if (pid < 0) {
+      printf("Fork failed");
+      exit(1);
+    } else if(pid == 0) {
       solve_shortest_paths(1000);
+      exit(0);
     } else {
       int ret = wait(&pid);  // wait for the child process to finish
       kill(ret);
     }
   }
+
+  printf("\n=============================================\n");
 }

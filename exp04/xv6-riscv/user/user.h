@@ -45,8 +45,8 @@ void* malloc(uint);
 void free(void*);
 
 // random.c
+uint random_range(int, int);
 uint random(int);
-void next_seed();
 
 // graph.c
 void solve_shortest_paths(int);

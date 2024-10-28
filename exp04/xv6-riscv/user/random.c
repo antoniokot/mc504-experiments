@@ -4,24 +4,34 @@
 #include "user/user.h"
 
 // Definir as constantes do gerador congruente linear
-#define A 1664525
-#define C 1013904223
-#define M 4294967296 // 2^32
+#define A 214013
+#define C 2531011
+#define M 0xFFFFFFFF // 2^32 - 1
 
 unsigned int seed = 123456; // Semente inicial (pode ser alterada)
 
-// Função que gera um número pseudoaleatório entre 0 e max (exclusivo)
+unsigned int calc_rand() {
+    seed = (A * seed + C) & M;
+    return seed >> 15;
+}
+
+unsigned int random_range(int lower, int upper) {
+    int range = upper - lower + 1;
+    unsigned int rand_val = calc_rand() % range;
+    return rand_val + lower;
+}
+
 unsigned int random(int max) {
     seed = (A * seed + C) % M;
     return seed % max;
 }
 
 // Função para alterar a semente inicial
-void set_seed(unsigned int new_seed) {
-    seed = new_seed;
-}
+// void set_seed(unsigned int new_seed) {
+//     seed = new_seed;
+// }
 
-void next_seed() {
-    uint next_seed = random(20000000);
-    set_seed(next_seed);
-}
+// void next_seed() {
+//     uint next_seed = random(20000000);
+//     set_seed(next_seed);
+// }
