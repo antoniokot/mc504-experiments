@@ -68,6 +68,9 @@ sys_dup(void)
 uint64
 sys_read(void)
 {
+  struct proc *proc = myproc();
+  uint64 start_time = rdtime();
+
   struct file *f;
   int n;
   uint64 p;
@@ -76,12 +79,23 @@ sys_read(void)
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
     return -1;
-  return fileread(f, p, n);
+
+  int bytes_read = fileread(f, p, n);
+
+  uint64 end_time = rdtime();
+  uint64 duration = end_time - start_time;
+
+  proc->io_syscalls_durations[proc->io_syscalls_count++] = duration;
+
+  return bytes_read;
 }
 
 uint64
 sys_write(void)
 {
+  struct proc *proc = myproc();
+  uint64 start_time = rdtime();
+
   struct file *f;
   int n;
   uint64 p;
@@ -91,7 +105,14 @@ sys_write(void)
   if(argfd(0, 0, &f) < 0)
     return -1;
 
-  return filewrite(f, p, n);
+  int bytes_written = filewrite(f, p, n);
+
+  uint64 end_time = rdtime();
+  uint64 duration = end_time - start_time;
+
+  proc->io_syscalls_durations[proc->io_syscalls_count++] = duration;
+
+  return bytes_written;
 }
 
 uint64
