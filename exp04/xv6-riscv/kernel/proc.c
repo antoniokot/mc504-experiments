@@ -613,6 +613,8 @@ kill(int pid)
     }
     release(&p->lock);
   }
+  p->killed_count++;    
+
   return -1;
 }
 

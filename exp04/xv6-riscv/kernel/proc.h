@@ -107,4 +107,5 @@ struct proc {
   char name[16];               // Process name (debugging)
   uint64 io_syscalls_durations[MAX_CALLS];
   int io_syscalls_count;
+  int killed_count;            // Number of 
 };

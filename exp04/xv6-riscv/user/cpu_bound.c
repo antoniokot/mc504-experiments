@@ -3,12 +3,11 @@
 #include "user/user.h"
 #include <stddef.h>
 
-void run_cpu_bound_experiment(int rounds) {
-  printf("\nRunning CPU-bound experiment with %d rounds...\n", rounds);
+void run_cpu_bound_experiment(int num_process) {
+  printf("\nRunning CPU-Bound processes...\n");
 
-  for (int i = 0; i < rounds; i++) {
-    printf("\n=============================================\n");
-    printf("\nRunning round %d...\n", i+1);
+  for (int i = 0; i < num_process; i++) {
+    printf("\nRunning process number %d...\n", i+1);
 
     int pid = fork();
     
@@ -23,6 +22,4 @@ void run_cpu_bound_experiment(int rounds) {
       kill(ret);
     }
   }
-
-  printf("\n=============================================\n");
 }
