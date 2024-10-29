@@ -38,3 +38,5 @@ entry("sleep");
 entry("uptime");
 entry("lseek");
 entry("get_metrics");
+entry("start_round");
+entry("calculate_throughput");

@@ -9,10 +9,11 @@
 #include "user/user.h"
 
 int main (void) {
-
+  start_round();
   printf("Running 30 rounds of experiments...\n");
 
   for(int i =  0; i < 30; i++) {
+
     printf("\n======================================\n");
     printf("\nRunning round number %d... \n\n", i+1);
 
@@ -26,6 +27,8 @@ int main (void) {
 
     run_cpu_bound_experiment(n_cpu_exp);
     run_io_bound_experiment(n_io_exp);
+
+    calculate_throughput();
   }
 
   return 0;

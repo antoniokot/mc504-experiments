@@ -193,3 +193,15 @@ sys_get_metrics(void)
 
   return 0;
 }
+
+uint64
+sys_start_round() {
+  start_round();
+  return 0;
+}
+
+uint64
+sys_calculate_throughput() {
+  calculate_throughput();
+  return 0;
+}

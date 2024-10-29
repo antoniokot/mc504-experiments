@@ -21,4 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_lseek  22
-#define SYS_get_metrics 23
+#define SYS_start_round 23
+#define SYS_get_metrics 24
+#define SYS_calculate_throughput 25

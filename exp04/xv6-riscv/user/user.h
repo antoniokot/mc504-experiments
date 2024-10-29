@@ -25,6 +25,8 @@ int sleep(int);
 int uptime(void);
 int lseek(int fd, int offset, int whence);
 int get_metrics(void);
+void start_round(void);
+void calculate_throughput(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

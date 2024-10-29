@@ -26,6 +26,9 @@ extern char trampoline[]; // trampoline.S
 // must be acquired before any p->lock.
 struct spinlock wait_lock;
 
+int completed_processes = 0;
+uint64 round_start_time = 0;
+
 // Allocate a page for each process's kernel stack.
 // Map it high in memory, followed by an invalid
 // guard page.
@@ -409,6 +412,7 @@ wait(uint64 addr)
         if(pp->state == ZOMBIE){
           // Found one.
           pid = pp->pid;
+          completed_processes++;
           if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
                                   sizeof(pp->xstate)) < 0) {
             release(&pp->lock);
@@ -612,8 +616,7 @@ kill(int pid)
       return 0;
     }
     release(&p->lock);
-  }
-  p->killed_count++;    
+  } 
 
   return -1;
 }
@@ -694,5 +697,24 @@ procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
+  }
+}
+
+void
+start_round(void) {
+  round_start_time = rdtime();
+  completed_processes = 0;
+}
+
+void 
+calculate_throughput(void) {
+  uint64 current_time = rdtime();
+  uint64 elapsed_time = current_time - round_start_time;
+
+  if (elapsed_time > 0) {
+    int throughput = completed_processes * 1000 / elapsed_time; // Processos por segundo
+    printf("Throughput: %d processes per second\n", throughput);
+    completed_processes = 0; // Reiniciar a contagem para a próxima rodada
+    round_start_time = current_time;
   }
 }
