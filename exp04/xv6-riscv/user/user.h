@@ -24,7 +24,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int lseek(int fd, int offset, int whence);
-int get_metrics(void);
+int get_io_latency_metrics(void);
 void start_round(void);
 void calculate_throughput(void);
 

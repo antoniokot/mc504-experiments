@@ -77,6 +77,4 @@ void random_write() {
         printf("Error deleting file\n");
         exit(1);
     }
-
-    get_metrics();
 }

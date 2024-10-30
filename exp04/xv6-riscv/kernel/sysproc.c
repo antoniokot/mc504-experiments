@@ -164,32 +164,28 @@ void print_padded_int(uint64 num, int width) {
 
 #define SCALE 1000000000
 uint64
-sys_get_metrics(void)
+sys_get_io_latency_metrics(void)
 {
-  struct proc *p = myproc();
-
   uint64 total_duration = 0;
   uint64 max_duration = 0;
-  uint64 min_duration = p->io_syscalls_durations[0];
-  for (int i = 0; i < p->io_syscalls_count; i++) {
-    uint64 duration = p->io_syscalls_durations[i];
+  uint64 min_duration = io_latency_metrics.durations[0];
+  for (int i = 0; i < io_latency_metrics.count; i++) {
+    uint64 duration = io_latency_metrics.durations[i];
     if (duration > max_duration) max_duration = duration;
     if (duration < min_duration) min_duration = duration;
     total_duration += duration;
   }
 
-  uint64 avg_io_latency = (total_duration * SCALE) / p->io_syscalls_count;
+  uint64 avg_io_latency = (total_duration * SCALE) / io_latency_metrics.count;
   uint64 normalized_io_latency = max_duration == min_duration ? SCALE : SCALE - ((avg_io_latency - (min_duration * SCALE)) * SCALE) / ((max_duration - min_duration) * SCALE);
 
-  printf("Average IO Latency: %ld.", avg_io_latency / SCALE);
-  print_padded_int(avg_io_latency % SCALE, 9);
-  printf(" cycles\n");
+  printf("Average IO Latency: %ld cycles\n", avg_io_latency / SCALE);
   printf("Normalized IO Latency: %ld.", normalized_io_latency / SCALE);
   print_padded_int(normalized_io_latency % SCALE, 9);
   printf("\n\n");
 
-  p->io_syscalls_count = 0;
-  memset(p->io_syscalls_durations, 0, sizeof(p->io_syscalls_durations));
+  io_latency_metrics.count = 0;
+  memset(io_latency_metrics.durations, 0, sizeof(io_latency_metrics.durations));
 
   return 0;
 }

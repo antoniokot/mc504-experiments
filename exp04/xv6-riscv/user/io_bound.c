@@ -20,4 +20,5 @@ void run_io_bound_experiment(int num_process) {
             kill(retPid);
         }
     }
+    get_io_latency_metrics();
 }

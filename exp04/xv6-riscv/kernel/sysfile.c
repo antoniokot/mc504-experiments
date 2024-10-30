@@ -68,7 +68,6 @@ sys_dup(void)
 uint64
 sys_read(void)
 {
-  struct proc *proc = myproc();
   uint64 start_time = rdtime();
 
   struct file *f;
@@ -85,7 +84,7 @@ sys_read(void)
   uint64 end_time = rdtime();
   uint64 duration = end_time - start_time;
 
-  proc->io_syscalls_durations[proc->io_syscalls_count++] = duration;
+  io_latency_metrics.durations[io_latency_metrics.count++] = duration;
 
   return bytes_read;
 }
@@ -93,7 +92,6 @@ sys_read(void)
 uint64
 sys_write(void)
 {
-  struct proc *proc = myproc();
   uint64 start_time = rdtime();
 
   struct file *f;
@@ -110,7 +108,7 @@ sys_write(void)
   uint64 end_time = rdtime();
   uint64 duration = end_time - start_time;
 
-  proc->io_syscalls_durations[proc->io_syscalls_count++] = duration;
+  io_latency_metrics.durations[io_latency_metrics.count++] = duration;
 
   return bytes_written;
 }
@@ -524,3 +522,5 @@ sys_pipe(void)
   }
   return 0;
 }
+
+struct io_latency_metrics io_latency_metrics = { .count = 0 };
