@@ -65,10 +65,20 @@ sys_dup(void)
   return fd;
 }
 
+// Helper function for sys_read and sys_write
+uint64 get_uptime(void) {
+  uint xticks;
+
+  acquire(&tickslock);
+  xticks = ticks;
+  release(&tickslock);
+  return xticks;
+}
+
 uint64
 sys_read(void)
 {
-  uint64 start_time = rdtime();
+  uint64 start_time = get_uptime();
 
   struct file *f;
   int n;
@@ -81,7 +91,7 @@ sys_read(void)
 
   int bytes_read = fileread(f, p, n);
 
-  uint64 end_time = rdtime();
+  uint64 end_time = get_uptime();
   uint64 duration = end_time - start_time;
 
   io_latency_metrics.durations[io_latency_metrics.count++] = duration;
@@ -92,7 +102,7 @@ sys_read(void)
 uint64
 sys_write(void)
 {
-  uint64 start_time = rdtime();
+  uint64 start_time = get_uptime();
 
   struct file *f;
   int n;
@@ -105,7 +115,7 @@ sys_write(void)
 
   int bytes_written = filewrite(f, p, n);
 
-  uint64 end_time = rdtime();
+  uint64 end_time = get_uptime();
   uint64 duration = end_time - start_time;
 
   io_latency_metrics.durations[io_latency_metrics.count++] = duration;
