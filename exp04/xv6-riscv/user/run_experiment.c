@@ -9,11 +9,10 @@
 #include "user/user.h"
 
 int main (void) {
-  start_round();
   printf("Running 30 rounds of experiments...\n");
 
   for(int i =  0; i < 30; i++) {
-
+    start_round();
     printf("\n======================================\n");
     printf("\nRunning round number %d... \n\n", i+1);
 

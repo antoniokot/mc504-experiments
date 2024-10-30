@@ -5,12 +5,19 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "kernel/syscall.h"
+#include <limits.h>
+
+#define TICKS_PER_SECOND 10 // trap.c
 
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
 struct proc *initproc;
+
+extern uint ticks;
+struct spinlock ticks_lock;
 
 int nextpid = 1;
 struct spinlock pid_lock;
@@ -27,6 +34,8 @@ extern char trampoline[]; // trampoline.S
 struct spinlock wait_lock;
 
 int completed_processes = 0;
+int T_put_max = 0;
+int T_put_min = INT_MAX; // Valor inicial máximo para encontrar o mínimo
 uint64 round_start_time = 0;
 
 // Allocate a page for each process's kernel stack.
@@ -699,21 +708,58 @@ procdump(void)
   }
 }
 
+int uptime() {
+  int current_ticks;
+  
+  acquire(&tickslock); // Protege o acesso a 'ticks'
+  current_ticks = ticks;
+  release(&tickslock);
+
+  return current_ticks;
+}
+
 void
 start_round(void) {
-  round_start_time = rdtime();
+  round_start_time = uptime();
   completed_processes = 0;
 }
 
 void 
+calculate_normalized_throughput(int throughput) {
+  if (T_put_max != T_put_min) { // Evita divisão por zero
+    int num = (throughput - T_put_min) * 1000;
+    int denom = T_put_max - T_put_min;
+      
+    int T_put_norm = 1000 - (num / denom);
+      
+    printf("Normalized Throughput: %d.%03d\n", T_put_norm / 1000, T_put_norm % 1000);
+  } else {
+    printf("Normalized Throughput: 1.000\n"); // Caso T_put_max == T_put_min
+  }
+}
+
+void 
 calculate_throughput(void) {
-  uint64 current_time = rdtime();
+  uint64 current_time = uptime();
   uint64 elapsed_time = current_time - round_start_time;
 
-  if (elapsed_time > 0) {
-    int throughput = completed_processes * 1000 / elapsed_time; // Processos por segundo
+  printf("Seconds passed: %ld\n", elapsed_time / TICKS_PER_SECOND);
+  if (elapsed_time >= TICKS_PER_SECOND) { // Aproximadamente um segundo
+    int throughput = completed_processes * TICKS_PER_SECOND / elapsed_time; // Processos por segundo
+
+    // Atualize T_put_max e T_put_min
+    if (throughput > T_put_max) {
+      T_put_max = throughput;
+    }
+    if (throughput < T_put_min) {
+      T_put_min = throughput;
+    }
+
     printf("Throughput: %d processes per second\n", throughput);
-    completed_processes = 0; // Reiniciar a contagem para a próxima rodada
-    round_start_time = current_time;
+        
+    // Calcule e exiba o throughput normalizado
+    calculate_normalized_throughput(throughput);
+        
+    completed_processes = 0;
   }
 }
