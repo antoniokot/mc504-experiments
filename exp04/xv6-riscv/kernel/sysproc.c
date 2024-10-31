@@ -191,15 +191,3 @@ sys_get_io_latency_metrics(void)
 
   return 0;
 }
-
-uint64
-sys_start_round(void) {
-  start_round();
-  return 0;
-}
-
-uint64
-sys_calculate_throughput(void) {
-  calculate_throughput();
-  return 0;
-}

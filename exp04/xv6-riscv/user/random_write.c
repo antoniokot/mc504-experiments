@@ -29,7 +29,6 @@ void swap_chars(int fd, int pos1, int pos2) {
 
 void random_write() {
     int fd = open(FILENAME, O_CREATE | O_WRONLY);
-    printf("Creating file...\n");
     if (fd == -1) {
         printf("Error opening file\n");
         exit(1);
@@ -42,7 +41,6 @@ void random_write() {
         exit(1);
     }
 
-    printf("Writing lines...\n");
     char *buf_ptr = buffer;
     for (int i = 0; i < LINES; i++) {
         for (int j = 0; j < CHAR_PER_LINE; j++) {
@@ -61,7 +59,6 @@ void random_write() {
         exit(1);
     }
 
-    printf("Permutating characters...\n");
     for (int i = 0; i < 50; i++) {
         int pos1 = random(LINES * (CHAR_PER_LINE + 1));
         int pos2 = random(LINES * (CHAR_PER_LINE + 1));
@@ -71,8 +68,6 @@ void random_write() {
     }
 
     close(fd);
-
-    printf("Deleting file...\n\n");
     if (unlink(FILENAME) == -1) {
         printf("Error deleting file\n");
         exit(1);

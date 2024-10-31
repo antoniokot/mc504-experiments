@@ -81,8 +81,6 @@ GraphsList* create_graphs_list(int num_digraphs) {
   Node*** list = (Node***)malloc(sizeof(Node**) * num_digraphs);
   int* lengths = (int*)malloc(sizeof(int) * num_digraphs);
 
-  printf("Creating %d graph(s)...\n", num_digraphs);
-
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = random_range(MIN_VERTEX, MAX_VERTEX); // 100 - 200 vértices -> 150 vértices [0, 150]
     int num_egdes = random_range(MIN_EDGES, MAX_EDGES);
@@ -161,14 +159,12 @@ void shortest_path(Node* graph[], int source, int num_vertex) {
 void solve_shortest_paths(int num_graphs) {
   GraphsList* graphs = create_graphs_list(num_graphs);
   
-  printf("Solving shortest paths...\n");
   for (int i = 0; i < num_graphs; i++) {
     Node** adj_list = graphs->graphs[i];
     int num_vertex = graphs->lengths[i];
 
     shortest_path(adj_list, 0, num_vertex);
   }
-  printf("Shortest paths solved.\n");
 
   for (int i = 0; i < num_graphs; i++) {
     Node** graph = graphs->graphs[i];

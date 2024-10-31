@@ -25,8 +25,6 @@ int sleep(int);
 int uptime(void);
 int lseek(int fd, int offset, int whence);
 int get_io_latency_metrics(void);
-void start_round(void);
-void calculate_throughput(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -63,3 +61,6 @@ void run_io_bound_experiment(int, int[2]);
 // random_write.c
 void swap_chars(int fd, int pos1, int pos2);
 void random_write(void);
+
+// metrics.c
+void get_metrics(int, int[2]);
