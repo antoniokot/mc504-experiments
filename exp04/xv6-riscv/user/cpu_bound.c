@@ -3,23 +3,23 @@
 #include "user/user.h"
 #include <stddef.h>
 
-void run_cpu_bound_experiment(int num_process) {
+void run_cpu_bound_experiment(int num_process, int pipe_fd[2]) {
   printf("\nRunning CPU-Bound processes...\n");
 
   for (int i = 0; i < num_process; i++) {
-    printf("\nRunning process number %d...\n", i+1);
-
     int pid = fork();
-    
     if (pid < 0) {
-      printf("Fork failed");
+      printf("Fork failed\n");
       exit(1);
-    } else if(pid == 0) {
-      solve_shortest_paths(1000);
+    } else if (pid == 0) {
+      solve_shortest_paths(1000); // Trabalho CPU-bound simulado
+
+      int end_time = uptime(); // ou rdtime(), dependendo do que preferir
+      write(pipe_fd[1], &end_time, sizeof(end_time));
       exit(0);
     } else {
-      int ret = wait(&pid);  // wait for the child process to finish
-      kill(ret);
+      int retPid = wait(&pid);
+      kill(retPid);
     }
   }
 }

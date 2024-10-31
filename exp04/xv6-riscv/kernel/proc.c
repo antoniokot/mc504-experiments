@@ -759,7 +759,6 @@ calculate_throughput(void) {
         
     // Calcule e exiba o throughput normalizado
     calculate_normalized_throughput(throughput);
-        
     completed_processes = 0;
   }
 }
