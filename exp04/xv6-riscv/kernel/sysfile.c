@@ -78,8 +78,6 @@ uint64 get_uptime(void) {
 uint64
 sys_read(void)
 {
-  uint64 start_time = get_uptime();
-
   struct file *f;
   int n;
   uint64 p;
@@ -91,19 +89,12 @@ sys_read(void)
 
   int bytes_read = fileread(f, p, n);
 
-  uint64 end_time = get_uptime();
-  uint64 duration = end_time - start_time;
-
-  io_latency_metrics.durations[io_latency_metrics.count++] = duration;
-
   return bytes_read;
 }
 
 uint64
 sys_write(void)
 {
-  uint64 start_time = get_uptime();
-
   struct file *f;
   int n;
   uint64 p;
@@ -114,12 +105,7 @@ sys_write(void)
     return -1;
 
   int bytes_written = filewrite(f, p, n);
-
-  uint64 end_time = get_uptime();
-  uint64 duration = end_time - start_time;
-
-  io_latency_metrics.durations[io_latency_metrics.count++] = duration;
-
+  
   return bytes_written;
 }
 
@@ -532,5 +518,3 @@ sys_pipe(void)
   }
   return 0;
 }
-
-struct io_latency_metrics io_latency_metrics = { .count = 0 };

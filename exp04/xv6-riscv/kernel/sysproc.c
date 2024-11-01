@@ -162,32 +162,9 @@ void print_padded_int(uint64 num, int width) {
   printf("%s", buffer);
 }
 
-#define SCALE 1000000000
 uint64
 sys_get_io_latency_metrics(void)
 {
-  uint64 total_duration = 0;
-  uint64 max_duration = 0;
-  uint64 min_duration = io_latency_metrics.durations[0] * SCALE;
-  for (int i = 0; i < io_latency_metrics.count; i++) {
-    uint64 duration = io_latency_metrics.durations[i] * SCALE;
-    if (duration > max_duration) max_duration = duration;
-    if (duration < min_duration) min_duration = duration;
-    total_duration += duration;
-  }
-
-  uint64 avg_io_latency = total_duration / io_latency_metrics.count;
-  uint64 normalized_io_latency = max_duration == min_duration ? SCALE : SCALE - (((avg_io_latency - min_duration) * SCALE) / ((max_duration/SCALE - min_duration/SCALE) * SCALE));
-
-  printf("Average IO Latency: %ld.", avg_io_latency / SCALE);
-  print_padded_int(avg_io_latency % SCALE, 9);
-  printf(" ticks\n");
-  printf("Normalized IO Latency: %ld.", normalized_io_latency / SCALE);
-  print_padded_int(normalized_io_latency % SCALE, 9);
-  printf("\n\n");
-
-  io_latency_metrics.count = 0;
-  memset(io_latency_metrics.durations, 0, sizeof(io_latency_metrics.durations));
 
   return 0;
 }

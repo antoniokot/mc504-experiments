@@ -59,8 +59,8 @@ void run_cpu_bound_experiment(int, int[2]);
 void run_io_bound_experiment(int, int[2]);
 
 // random_write.c
-void swap_chars(int fd, int pos1, int pos2);
-void random_write(void);
+void swap_chars(int fd, int pos1, int pos2, int process_num);
+void random_write(int process_num);
 
 // metrics.c
-void get_metrics(int, int[2]);
+void get_metrics(int, int, int[2]);

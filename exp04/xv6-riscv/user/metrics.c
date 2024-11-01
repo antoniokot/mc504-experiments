@@ -1,6 +1,7 @@
 #include "kernel/types.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
+#include "user/fileeff.h"
 
 #define TICKS_PER_SECOND 10
 
@@ -70,8 +71,49 @@ void calculate_throughput(int start_time, int pipe_fd[2]) {
   calculate_normalized_throughput(throughput);
 }
 
-void get_metrics(int start_time, int pipe_fd[2]) {
+void calculate_file_efficiency(int total_processes) {
+  uint64 total_efficiency = 0;
+  uint64 max_efficiency = 0;
+  uint64 min_efficiency = 2147483647;
+
+  for (int i = 0; i < total_processes; i++) {
+    uint64 total_read_duration = 0;
+    uint64 total_write_duration = 0;
+    uint64 total_delete_duration = 0;
+
+    for (int j = 0; j < file_efficiency_metrics.file_read_count; i++) {
+      total_read_duration += file_efficiency_metrics.file_read_duration[i][j];
+    }
+    for (int j = 0; j < file_efficiency_metrics.file_write_count; i++) {
+      total_write_duration += file_efficiency_metrics.file_write_duration[i][j];
+    }
+    for (int j = 0; j < file_efficiency_metrics.file_delete_count; i++) {
+      total_delete_duration += file_efficiency_metrics.file_delete_duration[i][j];
+    }
+
+    uint64 read_efficiency = total_read_duration / file_efficiency_metrics.file_read_count;
+    uint64 write_efficiency = total_write_duration / file_efficiency_metrics.file_write_count;
+    uint64 delete_efficiency = total_delete_duration / file_efficiency_metrics.file_delete_count;
+
+    uint64 partial_fs_efficiency = read_efficiency + write_efficiency + delete_efficiency;
+    total_efficiency += partial_fs_efficiency;
+    if (partial_fs_efficiency > max_efficiency) max_efficiency = partial_fs_efficiency;
+    if (partial_fs_efficiency < min_efficiency) min_efficiency = partial_fs_efficiency;
+  }
+
+  uint fs_efficiency = total_efficiency / total_processes;
+  printf("File System Efficiency: %d seconds\n", fs_efficiency / TICKS_PER_SECOND);
+
+  for (int i = 0; i < total_processes; i++) {
+    memset(file_efficiency_metrics.file_read_duration[i], 0, sizeof(file_efficiency_metrics.file_read_duration[i]));
+    memset(file_efficiency_metrics.file_write_duration[i], 0, sizeof(file_efficiency_metrics.file_write_duration[i]));
+    memset(file_efficiency_metrics.file_delete_duration[i], 0, sizeof(file_efficiency_metrics.file_delete_duration[i]));
+  }
+}
+
+void get_metrics(int start_time, int n_io_processes, int pipe_fd[2]) {
   printf("\nMetrics:\n");
 
   calculate_throughput(start_time, pipe_fd);
+  calculate_file_efficiency(n_io_processes);
 }

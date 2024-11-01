@@ -34,7 +34,7 @@ int main (void) {
 
     close(pipe_fd[1]);
 
-    get_metrics(start_time, pipe_fd);
+    get_metrics(start_time, n_io_exp, pipe_fd);
 
     printf("\n======================================\n");
 

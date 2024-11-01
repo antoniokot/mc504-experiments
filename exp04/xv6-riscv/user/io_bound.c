@@ -1,6 +1,7 @@
 #include "kernel/types.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
+#include "fileeff.h"
 
 void run_io_bound_experiment(int num_process, int pipe_fd[2]) {
     printf("\nRunning IO-Bound processes...\n");
@@ -11,7 +12,7 @@ void run_io_bound_experiment(int num_process, int pipe_fd[2]) {
             printf("Fork failed");
             exit(1);
         } else if (pid == 0) {
-            random_write();
+            random_write(i);
             
             int end_time = uptime();
             write(pipe_fd[1], &end_time, sizeof(end_time));
