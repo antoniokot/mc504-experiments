@@ -4,9 +4,13 @@
 #include "user/fileeff.h"
 
 #define TICKS_PER_SECOND 10
+#define SCALE 1000
+#define NUMBER_OF_PROCESSES 20
+#define NUMBER_OF_ROUNDS 30
 
 int T_put_max = 0;
 int T_put_min = __INT_MAX__;
+int norm_throughput = 0;
 
 // Função para imprimir valores de ponto flutuante com três casas decimais
 void print_float(int integer_part, int decimal_part) {
@@ -14,28 +18,39 @@ void print_float(int integer_part, int decimal_part) {
   if (decimal_part < 0) {
     decimal_part = -decimal_part;
   }
-  printf("%d.%03d", integer_part, decimal_part);
+
+  // Imprime a parte inteira
+  printf("%d.", integer_part);
+
+  // Adiciona zeros à esquerda conforme necessário para a parte decimal
+  if (decimal_part < 10) {
+    printf("00%d", decimal_part);
+  } else if (decimal_part < 100) {
+    printf("0%d", decimal_part);
+  } else {
+    printf("%d", decimal_part);
+  }
+
+  printf("\n"); // Quebra de linha para completar a saída
 }
 
 // Função para converter um número em ponto fixo para uma representação em "ponto flutuante"
 void print_fixed_point(int value) {
-  // Multiplica por 1000 para obter três casas decimais
-  int integer_part = value / 1000;
-  int decimal_part = value % 1000;
+  int integer_part = value / SCALE;
+  int decimal_part = value % SCALE;
 
   // Ajusta a parte decimal para ser positiva
   if (integer_part < 0 && decimal_part != 0) {
     integer_part -= 1;
-    decimal_part = 1000 - decimal_part;
+    decimal_part = SCALE - decimal_part;
   }
 
   print_float(integer_part, decimal_part);
 }
 
-void 
-calculate_normalized_throughput(int throughput) {
+void calculate_normalized_throughput(int throughput) {
   if (T_put_max != T_put_min) { // Evita divisão por zero
-    int T_put_norm = 1000 - ((throughput - T_put_min) * 1000 / (T_put_max - T_put_min));
+    int T_put_norm = SCALE - ((throughput - T_put_min) * SCALE / (T_put_max - T_put_min));
     
     printf("Normalized Throughput: ");
     print_fixed_point(T_put_norm);
@@ -56,7 +71,7 @@ void calculate_throughput(int start_time, int pipe_fd[2]) {
 
   // Tempo total do experimento em ticks
   int total_time = end_time - start_time; 
-  int throughput = processes_finished * TICKS_PER_SECOND / total_time;
+  int throughput = processes_finished * SCALE * TICKS_PER_SECOND / total_time;
 
   // Atualize T_put_max e T_put_min
   if (throughput > T_put_max) {
@@ -67,7 +82,11 @@ void calculate_throughput(int start_time, int pipe_fd[2]) {
     T_put_min = throughput;
   }
 
-  printf("Total seconds passed in the round: %d\n", total_time / TICKS_PER_SECOND);
+  printf("Throughput max: %d\n", T_put_max);
+  printf("Throughput min: %d\n", T_put_min);
+  printf("Throughput: ");
+  print_fixed_point(throughput);
+
   calculate_normalized_throughput(throughput);
 }
 
@@ -111,9 +130,14 @@ void calculate_file_efficiency(int total_processes) {
   }
 }
 
+void calculate_fairness() {
+  fairness();
+}
+
 void get_metrics(int start_time, int n_io_processes, int pipe_fd[2]) {
   printf("\nMetrics:\n");
 
   calculate_throughput(start_time, pipe_fd);
+  calculate_fairness();
   calculate_file_efficiency(n_io_processes);
 }

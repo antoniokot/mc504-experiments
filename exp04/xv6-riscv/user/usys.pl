@@ -37,4 +37,4 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("lseek");
-entry("get_io_latency_metrics");
+entry("fairness");

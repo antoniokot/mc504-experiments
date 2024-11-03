@@ -708,12 +708,47 @@ procdump(void)
   }
 }
 
-int uptime() {
-  int current_ticks;
-  
-  acquire(&tickslock); // Protege o acesso a 'ticks'
-  current_ticks = ticks;
-  release(&tickslock);
+#define SCALE 1000
 
-  return current_ticks;
+// Função para converter um valor float para ponto fixo (inteiro escalado)
+int float_to_fixed(float num) {
+    return (int)(num * SCALE);
+}
+
+// Função para fazer divisão com ponto fixo
+int fixed_div(int a, int b) {
+    return (a * SCALE) / b; // Retorna resultado escalado
+}
+
+// Função para multiplicar com ponto fixo
+int fixed_mul(int a, int b) {
+    return (a * b) / SCALE; // Mantém o resultado escalado
+}
+
+void fairness(void) {
+  struct proc *p;
+  uint sum_x = 0;
+  uint sum_x_squared = 0;
+  int num_processes = 0;
+
+  // Itera sobre a lista de processos para calcular sum_x e sum_x_squared
+  for(p = proc; p < &proc[NPROC]; p++){
+    if(p->state != UNUSED) { // Considera todos os processos que não estão inutilizados
+      // printf("runtime of process: %ld\n", p->runtime);
+      int runtime_scaled = p->runtime * SCALE; // Escala o runtime para ponto fixo
+      sum_x += runtime_scaled;
+      sum_x_squared += (runtime_scaled * runtime_scaled) / SCALE; // Mantém precisão de ponto fixo
+      num_processes++;
+    }
+  }
+
+  // Calcula J_cpu com a fórmula
+  if (num_processes > 0 && sum_x_squared > 0) {
+    uint J_cpu_numerator = sum_x * sum_x;
+    uint J_cpu_denominator = num_processes * sum_x_squared;
+    uint J_cpu = fixed_div(J_cpu_numerator, J_cpu_denominator); // Divisão com ponto fixo
+    printf("Justiça entre processos (J_cpu): %d.%d\n", J_cpu / SCALE, J_cpu % SCALE);
+  } else {
+    printf("Justiça entre processos (J_cpu): Indeterminado (não há processos suficientes)\n");
+  }
 }

@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include <stddef.h>
 
 struct spinlock tickslock;
 uint ticks;
@@ -168,6 +169,11 @@ clockintr()
     ticks++;
     wakeup(&ticks);
     release(&tickslock);
+  }
+
+  struct proc *p = myproc();
+  if (p != NULL && p->state == RUNNING) { // Verifica se há um processo em execução
+    p->runtime++;                         // Incrementa o tempo de execução em 1 tick
   }
 
   // ask for the next timer interrupt. this also clears

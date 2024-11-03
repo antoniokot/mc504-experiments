@@ -162,9 +162,8 @@ void print_padded_int(uint64 num, int width) {
   printf("%s", buffer);
 }
 
-uint64
-sys_get_io_latency_metrics(void)
-{
-
+uint64 
+sys_fairness(void) {
+  fairness();
   return 0;
 }

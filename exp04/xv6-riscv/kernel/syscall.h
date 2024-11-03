@@ -21,4 +21,4 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_lseek  22
-#define SYS_get_io_latency_metrics 23
+#define SYS_fairness 23
