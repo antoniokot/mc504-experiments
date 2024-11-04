@@ -30,8 +30,6 @@ void print_float(int integer_part, int decimal_part) {
   } else {
     printf("%d", decimal_part);
   }
-
-  printf("\n"); // Quebra de linha para completar a saída
 }
 
 // Função para converter um número em ponto fixo para uma representação em "ponto flutuante"
@@ -82,12 +80,12 @@ void calculate_throughput(int start_time, int pipe_fd[2]) {
     T_put_min = throughput;
   }
 
-  printf("Throughput max: %d\n", T_put_max);
-  printf("Throughput min: %d\n", T_put_min);
   printf("Throughput: ");
   print_fixed_point(throughput);
+  printf(" processes per second\n");
 
   calculate_normalized_throughput(throughput);
+  printf("\n");
 }
 
 void calculate_file_efficiency(int total_processes) {
@@ -135,9 +133,12 @@ void calculate_fairness() {
 }
 
 void get_metrics(int start_time, int n_io_processes, int pipe_fd[2]) {
-  printf("\nMetrics:\n");
+  printf("\nMetrics:\n\n");
 
   calculate_throughput(start_time, pipe_fd);
+  printf("\n");
   calculate_fairness();
+  printf("\n");
   calculate_file_efficiency(n_io_processes);
+  printf("\n");
 }

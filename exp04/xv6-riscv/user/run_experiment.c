@@ -16,7 +16,7 @@ int main (void) {
     exit(1);
   }
 
-  printf("Running 30 rounds of experiments...\n");
+  printf("\nRunning 30 rounds of experiments...\n");
 
   for(int i =  0; i < 30; i++) {
     printf("\n======================================\n");

@@ -9,6 +9,15 @@
 #include <limits.h>
 
 #define TICKS_PER_SECOND 10 // trap.c
+#define MAX_FINISHED_PROCESSES 100 // Número máximo de processos
+
+struct finished_proc_info {
+  int pid;
+  uint64 runtime;
+};
+
+struct finished_proc_info finished_procs[MAX_FINISHED_PROCESSES];
+int finished_count = 0;
 
 struct cpu cpus[NCPU];
 
@@ -418,6 +427,12 @@ wait(uint64 addr)
 
         havekids = 1;
         if(pp->state == ZOMBIE){
+          if(finished_count < MAX_FINISHED_PROCESSES) {
+            finished_procs[finished_count].pid = pp->pid;
+            finished_procs[finished_count++].runtime = pp->runtime;
+            pp->runtime = 0;
+          }
+
           // Found one.
           pid = pp->pid;
           completed_processes++;
@@ -725,29 +740,66 @@ int fixed_mul(int a, int b) {
     return (a * b) / SCALE; // Mantém o resultado escalado
 }
 
+// Função para imprimir valores de ponto flutuante com três casas decimais
+void print_float(int integer_part, int decimal_part) {
+  // Garante que a parte decimal seja positiva
+  if (decimal_part < 0) {
+    decimal_part = -decimal_part;
+  }
+
+  // Imprime a parte inteira
+  printf("%d.", integer_part);
+
+  // Adiciona zeros à esquerda conforme necessário para a parte decimal
+  if (decimal_part < 10) {
+    printf("00%d", decimal_part);
+  } else if (decimal_part < 100) {
+    printf("0%d", decimal_part);
+  } else {
+    printf("%d", decimal_part);
+  }
+
+  printf("\n");
+}
+
+// Função para converter um número em ponto fixo para uma representação em "ponto flutuante"
+void print_fixed_point(uint value) {
+  int integer_part = value / SCALE;
+  int decimal_part = value % SCALE;
+
+  // Ajusta a parte decimal para ser positiva
+  if (integer_part < 0 && decimal_part != 0) {
+    integer_part -= 1;
+    decimal_part = SCALE - decimal_part;
+  }
+
+  print_float(integer_part, decimal_part);
+}
+
 void fairness(void) {
-  struct proc *p;
   uint sum_x = 0;
   uint sum_x_squared = 0;
   int num_processes = 0;
 
   // Itera sobre a lista de processos para calcular sum_x e sum_x_squared
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->state != UNUSED) { // Considera todos os processos que não estão inutilizados
-      // printf("runtime of process: %ld\n", p->runtime);
-      int runtime_scaled = p->runtime * SCALE; // Escala o runtime para ponto fixo
-      sum_x += runtime_scaled;
-      sum_x_squared += (runtime_scaled * runtime_scaled) / SCALE; // Mantém precisão de ponto fixo
-      num_processes++;
-    }
+  for(int i = 0; i < finished_count; i++) {
+    struct finished_proc_info fp = finished_procs[i];
+    
+    uint runtime_scaled = (fp.runtime * SCALE) / TICKS_PER_SECOND;
+    sum_x += runtime_scaled;
+    sum_x_squared += fixed_mul(runtime_scaled, runtime_scaled);  // Mantém precisão de ponto fixo
+    num_processes++;
   }
+
+  finished_count = 0;
 
   // Calcula J_cpu com a fórmula
   if (num_processes > 0 && sum_x_squared > 0) {
     uint J_cpu_numerator = sum_x * sum_x;
     uint J_cpu_denominator = num_processes * sum_x_squared;
     uint J_cpu = fixed_div(J_cpu_numerator, J_cpu_denominator); // Divisão com ponto fixo
-    printf("Justiça entre processos (J_cpu): %d.%d\n", J_cpu / SCALE, J_cpu % SCALE);
+    printf("Justiça entre processos (J_cpu): ");
+    print_fixed_point(J_cpu);
   } else {
     printf("Justiça entre processos (J_cpu): Indeterminado (não há processos suficientes)\n");
   }
