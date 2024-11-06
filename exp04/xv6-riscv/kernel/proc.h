@@ -105,4 +105,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint64 runtime;              // total runtime of process
+  uint64 memory_access_time;   // Tempo total de acesso à memória
+  uint64 memory_alloc_time;    // Tempo total de alocação de memória
+  uint64 memory_free_time;     // Tempo total de desalocação de memória
 };

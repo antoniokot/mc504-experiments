@@ -14,10 +14,16 @@
 struct finished_proc_info {
   int pid;
   uint64 runtime;
+  uint64 memory_access_time;
+  uint64 memory_alloc_time;
+  uint64 memory_free_time;
 };
 
 struct finished_proc_info finished_procs[MAX_FINISHED_PROCESSES];
 int finished_count = 0;
+
+uint64 max_overhead_memory = 0;
+uint64 min_overhead_memory = UINT_MAX;
 
 struct cpu cpus[NCPU];
 
@@ -429,7 +435,10 @@ wait(uint64 addr)
         if(pp->state == ZOMBIE){
           if(finished_count < MAX_FINISHED_PROCESSES) {
             finished_procs[finished_count].pid = pp->pid;
-            finished_procs[finished_count++].runtime = pp->runtime;
+            finished_procs[finished_count].runtime = pp->runtime;
+            finished_procs[finished_count].memory_access_time = pp->memory_access_time;
+            finished_procs[finished_count].memory_alloc_time = pp->memory_alloc_time;
+            finished_procs[finished_count++].memory_free_time = pp->memory_free_time;
             pp->runtime = 0;
           }
 
@@ -783,9 +792,9 @@ void fairness(void) {
 
   // Itera sobre a lista de processos para calcular sum_x e sum_x_squared
   for(int i = 0; i < finished_count; i++) {
-    struct finished_proc_info fp = finished_procs[i];
+    struct finished_proc_info fp = finished_procs[i]; 
     
-    uint runtime_scaled = (fp.runtime * SCALE) / TICKS_PER_SECOND;
+    uint runtime_scaled = fixed_div(fp.runtime, TICKS_PER_SECOND);
     sum_x += runtime_scaled;
     sum_x_squared += fixed_mul(runtime_scaled, runtime_scaled);  // Mantém precisão de ponto fixo
     num_processes++;
@@ -797,10 +806,46 @@ void fairness(void) {
   if (num_processes > 0 && sum_x_squared > 0) {
     uint J_cpu_numerator = sum_x * sum_x;
     uint J_cpu_denominator = num_processes * sum_x_squared;
-    uint J_cpu = fixed_div(J_cpu_numerator, J_cpu_denominator); // Divisão com ponto fixo
+    uint J_cpu = J_cpu_numerator / J_cpu_denominator; // Divisão com ponto fixo
     printf("Justiça entre processos (J_cpu): ");
     print_fixed_point(J_cpu);
   } else {
     printf("Justiça entre processos (J_cpu): Indeterminado (não há processos suficientes)\n");
+  }
+}
+
+void memory_overhead(void) {
+  uint64 total_overhead = 0;
+  uint64 overhead = 0;
+
+  for(int i = 0; i < finished_count; i++) {
+    struct finished_proc_info fp = finished_procs[i];
+
+    overhead += fp.memory_access_time / TICKS_PER_SECOND;
+    overhead += fp.memory_alloc_time / TICKS_PER_SECOND;
+    overhead += fp.memory_free_time / TICKS_PER_SECOND;
+  }
+
+  if (overhead < min_overhead_memory) {
+    min_overhead_memory = overhead;
+  }
+
+  if (overhead > max_overhead_memory) {
+    max_overhead_memory = overhead;
+  }
+
+  if (overhead_max > overhead_min) {
+    for(int i = 0; i < finished_count; i++) {
+      struct finished_proc_info fp = finished_procs[i];
+
+      uint64 memory_overhead = fp.memory_access_time + fp.memory_alloc_time + fp.memory_free_time;
+
+      // Fórmula de M_over norm conforme a imagem:
+      uint64 normalized_memory_overhead = SCALE * (1 - (memory_overhead - overhead_min) / (overhead_max - overhead_min));
+      printf("Overhead normalizado de memória para processo %d: %d.%d\n", 
+        fp.pid, normalized_memory_overhead / SCALE, normalized_memory_overhead % SCALE);
+      }
+  } else {
+    printf("Overhead normalizado de memória: Indeterminado (overhead mínimo e máximo iguais)\n");
   }
 }
