@@ -162,8 +162,20 @@ void print_padded_int(uint64 num, int width) {
   printf("%s", buffer);
 }
 
+uint64
+sys_throughput(void) {
+  throughput();
+  return 0;
+}
+
 uint64 
 sys_fairness(void) {
   fairness();
+  return 0;
+}
+
+uint64
+sys_moverhead(void) {
+  memory_overhead();
   return 0;
 }

@@ -176,6 +176,19 @@ clockintr()
     p->runtime++;                         // Incrementa o tempo de execução em 1 tick
   }
 
+  if (ticks - last_tick_count >= TICKS_PER_SECOND) {
+    last_tick_count = ticks;
+
+    // Armazena o throughput (processos finalizados) deste segundo
+    if (t_put_count < MAX_ROUND_THROUGHPUTS) {
+      t_put_temp[t_put_count] = completed_processes;
+      t_put_count++;
+    }
+
+    // Reseta o contador de processos finalizados para o próximo segundo
+    completed_processes = 0;
+  }
+
   // ask for the next timer interrupt. this also clears
   // the interrupt request. 1000000 is about a tenth
   // of a second.

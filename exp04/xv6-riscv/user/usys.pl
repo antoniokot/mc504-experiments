@@ -37,4 +37,6 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("lseek");
+entry("throughput");
 entry("fairness");
+entry("moverhead");

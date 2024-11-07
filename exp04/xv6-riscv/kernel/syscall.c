@@ -102,7 +102,9 @@ extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
 extern uint64 sys_lseek(void);
+extern uint64 sys_throughput(void);
 extern uint64 sys_fairness(void);
+extern uint64 sys_moverhead(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -129,7 +131,9 @@ static uint64 (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_lseek]   sys_lseek,
+[SYS_throughput]sys_throughput,
 [SYS_fairness]sys_fairness,
+[SYS_moverhead]sys_moverhead,
 };
 
 void

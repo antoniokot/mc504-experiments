@@ -21,4 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_lseek  22
-#define SYS_fairness 23
+#define SYS_throughput 23
+#define SYS_fairness 24
+#define SYS_moverhead 25

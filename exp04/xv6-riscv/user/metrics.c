@@ -2,15 +2,12 @@
 #include "kernel/fcntl.h"
 #include "user/user.h"
 #include "user/fileeff.h"
+#include <limits.h>
 
-#define TICKS_PER_SECOND 10
 #define SCALE 1000
 #define NUMBER_OF_PROCESSES 20
 #define NUMBER_OF_ROUNDS 30
-
-int T_put_max = 0;
-int T_put_min = __INT_MAX__;
-int norm_throughput = 0;
+#define TICKS_PER_SECOND 10
 
 // Função para imprimir valores de ponto flutuante com três casas decimais
 void print_float(int integer_part, int decimal_part) {
@@ -46,46 +43,9 @@ void print_fixed_point(int value) {
   print_float(integer_part, decimal_part);
 }
 
-void calculate_normalized_throughput(int throughput) {
-  if (T_put_max != T_put_min) { // Evita divisão por zero
-    int T_put_norm = SCALE - ((throughput - T_put_min) * SCALE / (T_put_max - T_put_min));
-    
-    printf("Normalized Throughput: ");
-    print_fixed_point(T_put_norm);
-  } else {
-    printf("Normalized Throughput: 1.000\n"); // Caso T_put_max == T_put_min
-  }
-}
-
 // Função para calcular o throughput com base nos tempos de término
-void calculate_throughput(int start_time, int pipe_fd[2]) {
-  int end_time;
-  int processes_finished = 0;
-
-  // Lê os tempos de término do pipe
-  while (read(pipe_fd[0], &end_time, sizeof(end_time)) > 0) {
-    processes_finished++;
-  }
-
-  // Tempo total do experimento em ticks
-  int total_time = end_time - start_time; 
-  int throughput = processes_finished * SCALE * TICKS_PER_SECOND / total_time;
-
-  // Atualize T_put_max e T_put_min
-  if (throughput > T_put_max) {
-    T_put_max = throughput;
-  }
-
-  if (throughput < T_put_min) {
-    T_put_min = throughput;
-  }
-
-  printf("Throughput: ");
-  print_fixed_point(throughput);
-  printf(" processes per second\n");
-
-  calculate_normalized_throughput(throughput);
-  printf("\n");
+void calculate_throughput() {
+  throughput();
 }
 
 void calculate_file_efficiency(int total_processes) {
@@ -132,13 +92,19 @@ void calculate_fairness() {
   fairness();
 }
 
-void get_metrics(int start_time, int n_io_processes, int pipe_fd[2]) {
+void calculate_memory_overhead() {
+  moverhead();
+}
+
+void get_metrics(int n_io_processes) {
   printf("\nMetrics:\n\n");
 
-  calculate_throughput(start_time, pipe_fd);
+  calculate_throughput();
   printf("\n");
   calculate_fairness();
   printf("\n");
   calculate_file_efficiency(n_io_processes);
+  printf("\n");
+  calculate_memory_overhead();
   printf("\n");
 }

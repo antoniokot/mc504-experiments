@@ -109,3 +109,14 @@ struct proc {
   uint64 memory_alloc_time;    // Tempo total de alocação de memória
   uint64 memory_free_time;     // Tempo total de desalocação de memória
 };
+
+#define TICKS_PER_SECOND 10
+#define MAX_ROUND_THROUGHPUTS 100 // Número máximo de medições de throughput por rodada
+
+// Array para armazenar o throughput temporário a cada segundo
+extern int t_put_temp[MAX_ROUND_THROUGHPUTS];
+extern int t_put_count;         // Contador para o número de entradas de throughput registradas
+
+// Variáveis para monitorar o tempo
+extern int last_tick_count;     // Ticks desde o último segundo
+extern int completed_processes; // Contador de processos completados dentro do segundo atual

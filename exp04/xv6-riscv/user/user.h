@@ -24,7 +24,9 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int lseek(int fd, int offset, int whence);
+int throughput(void);
 int fairness(void);
+int moverhead(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -53,14 +55,14 @@ uint random(int);
 void solve_shortest_paths(int);
 
 // cpu_bound.c
-void run_cpu_bound_experiment(int, int[2]);
+void run_cpu_bound_experiment(int);
 
 // io_bound.c
-void run_io_bound_experiment(int, int[2]);
+void run_io_bound_experiment(int);
 
 // random_write.c
 void swap_chars(int fd, int pos1, int pos2, int process_num);
 void random_write(int process_num);
 
 // metrics.c
-void get_metrics(int, int, int[2]);
+void get_metrics(int);
