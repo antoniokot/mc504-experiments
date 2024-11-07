@@ -28,8 +28,8 @@ int main (void) {
     printf("Number of CPU-Bound processes: %d\n", n_cpu_exp);
     printf("Number of IO-Bound processes: %d\n", n_io_exp);
 
-    run_cpu_bound_experiment(n_cpu_exp, pipe_fd);
-    run_io_bound_experiment(n_io_exp, pipe_fd);
+    run_cpu_bound_experiment(n_cpu_exp);
+    run_io_bound_experiment(n_io_exp);
 
     // close(pipe_fd[1]);
 

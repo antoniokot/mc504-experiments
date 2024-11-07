@@ -26,8 +26,8 @@ int completed_processes = 0;
 struct finished_proc_info finished_procs[MAX_FINISHED_PROCESSES];
 int finished_count = 0;
 
-uint64 max_overhead_memory = 0;
-uint64 min_overhead_memory = UINT_MAX;
+uint64 max_memory_overhead = 0;
+uint64 min_memory_overhead = UINT_MAX;
 
 struct cpu cpus[NCPU];
 
@@ -784,7 +784,7 @@ void print_fixed_point(uint value) {
   print_float(integer_part, decimal_part);
 }
 
-void throughput() {
+void throughput(void) {
   if (t_put_count == 0) {
     printf("Nenhum throughput foi registrado nesta rodada.\n");
     return;
@@ -813,9 +813,9 @@ void throughput() {
   // Calcula o throughput normalizado usando a fórmula
   int normalized_throughput = 0;
   if (t_put_max != t_put_min) {
-    normalized_throughput = SCALE * (t_put_avg - t_put_min) / (t_put_max - t_put_min);
+    normalized_throughput = SCALE - ((t_put_avg - t_put_min) * SCALE) / (t_put_max - t_put_min);
   }
-
+  printf("Throughput normalizado (T_put_norm): ");
   print_fixed_point(normalized_throughput);
 
   // Reseta o contador de throughput para a próxima rodada
@@ -852,26 +852,31 @@ void fairness(void) {
 }
 
 void memory_overhead(void) {
-  uint64 overhead = 0;
+  int overhead = 0;
+  int sum_memory = 0;
 
   for(int i = 0; i < finished_count; i++) {
     struct finished_proc_info fp = finished_procs[i];
 
-    overhead += fp.memory_access_time / TICKS_PER_SECOND;
-    overhead += fp.memory_alloc_time / TICKS_PER_SECOND;
-    overhead += fp.memory_free_time / TICKS_PER_SECOND;
+    overhead += fp.memory_access_time * SCALE / TICKS_PER_SECOND;
+    overhead += fp.memory_alloc_time * SCALE / TICKS_PER_SECOND;
+    overhead += fp.memory_free_time * SCALE / TICKS_PER_SECOND;
+
+    sum_memory += overhead;
+
+    if (overhead < min_memory_overhead) {
+      min_memory_overhead = overhead;
+    }
+
+    if (overhead > max_memory_overhead) {
+      max_memory_overhead = overhead;
+    }
   }
 
-  if (overhead < min_overhead_memory) {
-    min_overhead_memory = overhead;
-  }
+  int avg_memory_overhead = sum_memory / completed_processes;
 
-  if (overhead > max_overhead_memory) {
-    max_overhead_memory = overhead;
-  }
+  printf("Overhead de memoria: %d\n", overhead);
 
-  printf("Overhead de memoria: %ld\n", overhead);
-
-  uint64 normalized_memory_overhead = SCALE * (1 - (overhead - min_overhead_memory) / (max_overhead_memory - min_overhead_memory));
-  printf("Overhead normalizado: %ld.%ld\n", normalized_memory_overhead / SCALE, normalized_memory_overhead % SCALE);
+  uint64 normalized_memory_overhead = SCALE * (1 - (avg_memory_overhead - min_memory_overhead) / (max_memory_overhead - min_memory_overhead));
+  print_fixed_point(normalized_memory_overhead);
 }

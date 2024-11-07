@@ -99,12 +99,12 @@ void calculate_memory_overhead() {
 void get_metrics(int n_io_processes) {
   printf("\nMetrics:\n\n");
 
+  printf("- ");
   calculate_throughput();
-  printf("\n");
+  printf("- ");
   calculate_fairness();
-  printf("\n");
+  printf("- ");
   calculate_file_efficiency(n_io_processes);
-  printf("\n");
+  printf("- ");
   calculate_memory_overhead();
-  printf("\n");
 }
