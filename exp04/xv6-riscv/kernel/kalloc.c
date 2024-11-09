@@ -48,7 +48,6 @@ freerange(void *pa_start, void *pa_end)
 void
 kfree(void *pa)
 {
-  uint64 start_time = rdtime(); // Começa a medir o tempo
   struct run *r;
 
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
@@ -63,12 +62,6 @@ kfree(void *pa)
   r->next = kmem.freelist;
   kmem.freelist = r;
   release(&kmem.lock);
-
-  uint64 end_time = rdtime(); // Termina a medição de tempo
-  struct proc *p = myproc();
-  if (p != NULL && p->state == RUNNING) { // Verifica se há um processo em execução
-    p->memory_alloc_time += (end_time - start_time);
-  }
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -77,7 +70,6 @@ kfree(void *pa)
 void *
 kalloc(void)
 {
-  uint64 start_time = rdtime(); // Começa a medir o tempo
   struct run *r;
 
   acquire(&kmem.lock);
@@ -88,12 +80,6 @@ kalloc(void)
 
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
-
-  uint64 end_time = rdtime(); // Termina a medição de tempo
-  struct proc *p = myproc();
-  if (p != NULL && p->state == RUNNING) { // Verifica se há um processo em execução
-    p->memory_alloc_time += (end_time - start_time);
-  }
 
   return (void*)r;
 }

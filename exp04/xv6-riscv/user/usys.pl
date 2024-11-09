@@ -40,3 +40,5 @@ entry("lseek");
 entry("throughput");
 entry("fairness");
 entry("moverhead");
+entry("storemoverhead");
+entry("incremoverhcount");

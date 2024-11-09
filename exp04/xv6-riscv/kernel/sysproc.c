@@ -164,18 +164,30 @@ void print_padded_int(uint64 num, int width) {
 
 uint64
 sys_throughput(void) {
-  throughput();
-  return 0;
+  return throughput();
 }
 
 uint64 
 sys_fairness(void) {
-  fairness();
-  return 0;
+  return fairness();
 }
 
 uint64
 sys_moverhead(void) {
-  memory_overhead();
+  return moverhead();
+}
+
+uint64 sys_storemoverhead(void) {
+  int arg1, arg2, arg3;
+  argint(0, &arg1);
+  argint(1, &arg2);
+  argint(2, &arg3);
+
+  storemoverhead(arg1, arg2, arg3);
+  return 0;
+}
+
+uint64 sys_incremoverhcount(void) {
+  incremoverhcount();
   return 0;
 }

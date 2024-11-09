@@ -9,25 +9,37 @@
 #include <limits.h>
 
 #define MAX_FINISHED_PROCESSES 100 // Número máximo de processos
+#define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
 
-struct finished_proc_info {
-  int pid;
-  uint64 runtime;
-  uint64 memory_access_time;
-  uint64 memory_alloc_time;
-  uint64 memory_free_time;
-};
 
+// throughput
 int t_put_temp[MAX_ROUND_THROUGHPUTS] = {0};
 int t_put_count = 0;
 int last_tick_count = 0;
 int completed_processes = 0;
 
+// justice
+struct finished_proc_info {
+  int pid;
+  uint64 runtime;
+};
+
 struct finished_proc_info finished_procs[MAX_FINISHED_PROCESSES];
 int finished_count = 0;
 
+// memory overhead
 uint64 max_memory_overhead = 0;
 uint64 min_memory_overhead = UINT_MAX;
+
+struct mem_overhead {
+  int memory_access_time;   // Tempo total de acesso à memória
+  int memory_alloc_time;    // Tempo total de alocação de memória
+  int memory_free_time;     // Tempo total de desalocação de memória
+};
+
+// Array para armazenar o throughput temporário a cada segundo
+struct mem_overhead mem_overhead_temp[MAX_ROUND_MEMORY_OVERHEAD];
+int mem_overhead_count;
 
 struct cpu cpus[NCPU];
 
@@ -434,10 +446,7 @@ wait(uint64 addr)
         if(pp->state == ZOMBIE){
           if(finished_count < MAX_FINISHED_PROCESSES) {
             finished_procs[finished_count].pid = pp->pid;
-            finished_procs[finished_count].runtime = pp->runtime;
-            finished_procs[finished_count].memory_access_time = pp->memory_access_time;
-            finished_procs[finished_count].memory_alloc_time = pp->memory_alloc_time;
-            finished_procs[finished_count++].memory_free_time = pp->memory_free_time;
+            finished_procs[finished_count++].runtime = pp->runtime;
             pp->runtime = 0;
           }
 
@@ -748,46 +757,10 @@ int fixed_mul(int a, int b) {
     return (a * b) / SCALE; // Mantém o resultado escalado
 }
 
-// Função para imprimir valores de ponto flutuante com três casas decimais
-void print_float(int integer_part, int decimal_part) {
-  // Garante que a parte decimal seja positiva
-  if (decimal_part < 0) {
-    decimal_part = -decimal_part;
-  }
-
-  // Imprime a parte inteira
-  printf("%d.", integer_part);
-
-  // Adiciona zeros à esquerda conforme necessário para a parte decimal
-  if (decimal_part < 10) {
-    printf("00%d", decimal_part);
-  } else if (decimal_part < 100) {
-    printf("0%d", decimal_part);
-  } else {
-    printf("%d", decimal_part);
-  }
-
-  printf("\n");
-}
-
-// Função para converter um número em ponto fixo para uma representação em "ponto flutuante"
-void print_fixed_point(uint value) {
-  int integer_part = value / SCALE;
-  int decimal_part = value % SCALE;
-
-  // Ajusta a parte decimal para ser positiva
-  if (integer_part < 0 && decimal_part != 0) {
-    integer_part -= 1;
-    decimal_part = SCALE - decimal_part;
-  }
-
-  print_float(integer_part, decimal_part);
-}
-
-void throughput(void) {
+int throughput(void) {
   if (t_put_count == 0) {
     printf("Nenhum throughput foi registrado nesta rodada.\n");
-    return;
+    return -1;
   }
 
   int sum_throughput = 0;
@@ -815,14 +788,13 @@ void throughput(void) {
   if (t_put_max != t_put_min) {
     normalized_throughput = SCALE - ((t_put_avg - t_put_min) * SCALE) / (t_put_max - t_put_min);
   }
-  printf("Throughput normalizado (T_put_norm): ");
-  print_fixed_point(normalized_throughput);
-
+  
   // Reseta o contador de throughput para a próxima rodada
   t_put_count = 0;
+  return normalized_throughput;
 }
 
-void fairness(void) {
+int fairness(void) {
   uint sum_x = 0;
   uint sum_x_squared = 0;
   int num_processes = 0;
@@ -844,23 +816,22 @@ void fairness(void) {
     uint J_cpu_numerator = sum_x * sum_x;
     uint J_cpu_denominator = num_processes * sum_x_squared;
     uint J_cpu = J_cpu_numerator / J_cpu_denominator; // Divisão com ponto fixo
-    printf("Justiça entre processos (J_cpu): ");
-    print_fixed_point(J_cpu);
+    return J_cpu;
   } else {
-    printf("Justiça entre processos (J_cpu): Indeterminado (não há processos suficientes)\n");
+    return 0;
   }
 }
 
-void memory_overhead(void) {
+int moverhead(void) {
   int overhead = 0;
   int sum_memory = 0;
 
-  for(int i = 0; i < finished_count; i++) {
-    struct finished_proc_info fp = finished_procs[i];
+  for(int i = 0; i < mem_overhead_count; i++) {
+    struct mem_overhead mo = mem_overhead_temp[i];
 
-    overhead += fp.memory_access_time * SCALE / TICKS_PER_SECOND;
-    overhead += fp.memory_alloc_time * SCALE / TICKS_PER_SECOND;
-    overhead += fp.memory_free_time * SCALE / TICKS_PER_SECOND;
+    overhead += mo.memory_access_time * SCALE / TICKS_PER_SECOND;
+    overhead += mo.memory_alloc_time * SCALE / TICKS_PER_SECOND;
+    overhead += mo.memory_free_time * SCALE / TICKS_PER_SECOND;
 
     sum_memory += overhead;
 
@@ -871,12 +842,24 @@ void memory_overhead(void) {
     if (overhead > max_memory_overhead) {
       max_memory_overhead = overhead;
     }
+
+    overhead = 0;
   }
 
-  int avg_memory_overhead = sum_memory / completed_processes;
+  int avg_memory_overhead = sum_memory / mem_overhead_count;
 
-  printf("Overhead de memoria: %d\n", overhead);
+  int normalized_memory_overhead = SCALE - ((avg_memory_overhead - min_memory_overhead) * SCALE) / (max_memory_overhead - min_memory_overhead);
+  mem_overhead_count = 0;
 
-  uint64 normalized_memory_overhead = SCALE * (1 - (avg_memory_overhead - min_memory_overhead) / (max_memory_overhead - min_memory_overhead));
-  print_fixed_point(normalized_memory_overhead);
+  return normalized_memory_overhead;
+}
+
+void incremoverhcount(void) {
+  mem_overhead_count++;
+}
+
+void storemoverhead(int alloc, int free, int access) {
+  mem_overhead_temp[mem_overhead_count].memory_access_time = access;
+  mem_overhead_temp[mem_overhead_count].memory_free_time = free;
+  mem_overhead_temp[mem_overhead_count].memory_alloc_time = alloc;
 }

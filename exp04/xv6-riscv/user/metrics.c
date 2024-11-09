@@ -9,6 +9,11 @@
 #define NUMBER_OF_ROUNDS 30
 #define TICKS_PER_SECOND 10
 
+struct mem_overhead mem_overhead_temp[MAX_ROUND_MEMORY_OVERHEAD];
+int mem_overhead_count = 0;
+
+int avg_perfomance = 0;
+
 // Função para imprimir valores de ponto flutuante com três casas decimais
 void print_float(int integer_part, int decimal_part) {
   // Garante que a parte decimal seja positiva
@@ -27,6 +32,8 @@ void print_float(int integer_part, int decimal_part) {
   } else {
     printf("%d", decimal_part);
   }
+
+  printf("\n");
 }
 
 // Função para converter um número em ponto fixo para uma representação em "ponto flutuante"
@@ -45,7 +52,12 @@ void print_fixed_point(int value) {
 
 // Função para calcular o throughput com base nos tempos de término
 void calculate_throughput() {
-  throughput();
+  int t_put_norm = throughput();
+
+  avg_perfomance += t_put_norm;
+
+  printf("Throughput normalizado (T_put_norm): ");
+  print_fixed_point(t_put_norm);
 }
 
 void calculate_file_efficiency(int total_processes) {
@@ -89,11 +101,28 @@ void calculate_file_efficiency(int total_processes) {
 }
 
 void calculate_fairness() {
-  fairness();
+  int j_cpu = fairness();
+
+  avg_perfomance += j_cpu;
+
+  printf("Justiça entre processos (J_cpu): ");
+  print_fixed_point(j_cpu);
 }
 
 void calculate_memory_overhead() {
-  moverhead();
+  int m_over_norm = moverhead();
+
+  avg_perfomance += m_over_norm;
+
+  printf("Overhead de memoria normalizado (M_over_norm): ");
+  print_fixed_point(m_over_norm);
+}
+
+void calculate_average_system_performance() {
+  int final_avg_system_performance = avg_perfomance / 4;
+
+  printf("Performance média do sistema (S_perform): ");
+  print_fixed_point(final_avg_system_performance);
 }
 
 void get_metrics(int n_io_processes) {
@@ -107,4 +136,6 @@ void get_metrics(int n_io_processes) {
   calculate_file_efficiency(n_io_processes);
   printf("- ");
   calculate_memory_overhead();
+  printf("\n- ");
+  calculate_average_system_performance();
 }

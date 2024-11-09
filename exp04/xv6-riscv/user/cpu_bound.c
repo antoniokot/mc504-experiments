@@ -13,9 +13,8 @@ void run_cpu_bound_experiment(int num_process) {
       exit(1);
     } else if (pid == 0) {
       solve_shortest_paths(1000); // Trabalho CPU-bound simulado
-
-      //int end_time = uptime();
-      //write(pipe_fd[1], &end_time, sizeof(end_time));
+      mem_overhead_count++;
+      incremoverhcount();
       exit(0);
     } else {
       int retPid = wait(&pid);

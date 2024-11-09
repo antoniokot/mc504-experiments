@@ -67,7 +67,13 @@ void random_write(int process_num) {
         exit(1);
     }
 
+    int start_alloc_time = uptime();
     char *buffer = malloc(LINES * (CHAR_PER_LINE + 1));
+    int end_alloc_time = uptime();
+
+    mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
+
+    int start_access_time = uptime();
     if (buffer == 0) {
         printf("Error allocating memory\n");
         close(fd);
@@ -85,10 +91,16 @@ void random_write(int process_num) {
     uint64 start_write = uptime();
     write(fd, buffer, LINES * (CHAR_PER_LINE + 1));
     uint64 end_write = uptime();
+    
+    int end_access_time = uptime(); 
+    mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
 
     file_efficiency_metrics.file_write_duration[process_num][file_efficiency_metrics.file_read_count++] = end_write - start_write;
 
+    int start_free_time = uptime();
     free(buffer);
+    int end_free_time = uptime();
+    mem_overhead_temp[mem_overhead_count].memory_free_time += end_free_time - start_free_time;
 
     fd = open(FILENAME, O_RDWR);
     if (fd == -1) {
@@ -113,4 +125,10 @@ void random_write(int process_num) {
     uint64 end_delete = uptime();
 
     file_efficiency_metrics.file_delete_duration[process_num][file_efficiency_metrics.file_delete_count++] = end_delete - start_delete;
+
+    int alloc_time = mem_overhead_temp[mem_overhead_count].memory_alloc_time;
+    int free_time = mem_overhead_temp[mem_overhead_count].memory_free_time;
+    int access_time = mem_overhead_temp[mem_overhead_count].memory_access_time;
+
+    storemoverhead(alloc_time, free_time, access_time);
 }

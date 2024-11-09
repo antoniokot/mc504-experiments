@@ -12,10 +12,9 @@ void run_io_bound_experiment(int num_process) {
             printf("Fork failed");
             exit(1);
         } else if (pid == 0) {
-            random_write(i);
-            
-            //int end_time = uptime();
-            //write(pipe_fd[1], &end_time, sizeof(end_time));
+            random_write(i);         
+            mem_overhead_count++;
+            incremoverhcount();
             exit(0);
         } else {
             int retPid = wait(&pid);

@@ -26,6 +26,7 @@ Node* make_node(int destination) {
   Node* newNode = (Node*)malloc(sizeof(Node));
   newNode->destination = destination;
   newNode->next = NULL;
+
   return newNode;
 }
 
@@ -42,7 +43,8 @@ int exists_edge(Node* adj_list[], int origin, int destination) {
       return 1; // edge already exists
     }
     temp = temp->next;
-  } 
+  }
+
   return 0;
 }
 
@@ -50,7 +52,9 @@ void create_graph(Node* adj_list[], int num_vertex, int num_edges) {
   int origin = 0;
   int destination = 0;
 
-  // Create random edges
+  int start_access_time = uptime();
+  int start_alloc_time = uptime();
+
   int countEgdes = 0;
   while (countEgdes < num_edges) {
     origin = random_range(0, num_vertex-1);
@@ -62,31 +66,33 @@ void create_graph(Node* adj_list[], int num_vertex, int num_edges) {
       countEgdes++;
     }
   }
-}
+  
+  int end_alloc_time = uptime();
+  mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
 
-void print_graph(Node* listaAdj[], int vertices) {
-  for (int i = 0; i < vertices; i++) {
-    printf("Vértice %d:", i);
-
-    Node* temp = listaAdj[i];
-    while (temp != NULL) {
-      printf(" -> %d", temp->destination);
-      temp = temp->next;
-    }
-    printf("\n");
-  }
+  int end_access_time = uptime();
+  mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
 }
 
 GraphsList* create_graphs_list(int num_digraphs) {
+  int start_alloc_time = uptime();
   Node*** list = (Node***)malloc(sizeof(Node**) * num_digraphs);
   int* lengths = (int*)malloc(sizeof(int) * num_digraphs);
+  int end_alloc_time = uptime();
 
+  mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
+
+  int start_access_time = uptime();
   for (int i = 0; i < num_digraphs; i++) {
     int num_vertex = random_range(MIN_VERTEX, MAX_VERTEX); // 100 - 200 vértices -> 150 vértices [0, 150]
     int num_egdes = random_range(MIN_EDGES, MAX_EDGES);
 
+    start_alloc_time = uptime();
     list[i] = (Node**)malloc(sizeof(Node*) * num_vertex);
+    end_alloc_time = uptime();
     lengths[i] = num_vertex;
+
+    mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
 
     if(list[i] == NULL) {
       printf("Error allocating memory for adj_list.\n");
@@ -101,10 +107,16 @@ GraphsList* create_graphs_list(int num_digraphs) {
     create_graph(list[i], num_vertex, num_egdes);
   }
 
+  start_alloc_time = uptime();
   GraphsList* result = (GraphsList*)malloc(sizeof(GraphsList));
+  end_alloc_time = uptime();
 
   result->graphs = list;
   result->lengths = lengths;
+  int end_access_time = uptime();
+
+  mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
+  mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
 
   return result;
 }
@@ -140,6 +152,7 @@ void shortest_path(Node* graph[], int source, int num_vertex) {
 
   dist[source] = 0;
 
+  int start_access_time = uptime();
   for (int i = 0; i < num_vertex; i++) {
     int u = closest(dist, processed, num_vertex);
     processed[u] = 1;
@@ -152,20 +165,31 @@ void shortest_path(Node* graph[], int source, int num_vertex) {
 
       relax(dist, processed, u, v);
       curr = curr->next;
-    }  
+    }
   }
+  int end_access_time = uptime();
+  mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
 }
 
 void solve_shortest_paths(int num_graphs) {
   GraphsList* graphs = create_graphs_list(num_graphs);
   
+  int start_access_time = 0;
+  int end_access_time = 0;
+
   for (int i = 0; i < num_graphs; i++) {
+    start_access_time = uptime();
     Node** adj_list = graphs->graphs[i];
     int num_vertex = graphs->lengths[i];
+    end_access_time = uptime();
+
+    mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
 
     shortest_path(adj_list, 0, num_vertex);
   }
 
+  start_access_time = uptime();
+  int start_free_time = uptime();
   for (int i = 0; i < num_graphs; i++) {
     Node** graph = graphs->graphs[i];
     int num_vertex = graphs->lengths[i];
@@ -179,11 +203,21 @@ void solve_shortest_paths(int num_graphs) {
         free(copy);
       }  
     }
-
     free(graph);
   }
 
   free(graphs->graphs);
   free(graphs->lengths);
   free(graphs);
+
+  end_access_time = uptime();
+  mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
+  int end_free_time = uptime();
+  mem_overhead_temp[mem_overhead_count].memory_free_time += end_free_time - start_free_time;
+
+  int alloc_time = mem_overhead_temp[mem_overhead_count].memory_alloc_time;
+  int free_time = mem_overhead_temp[mem_overhead_count].memory_free_time;
+  int access_time = mem_overhead_temp[mem_overhead_count].memory_access_time;
+
+  storemoverhead(alloc_time, free_time, access_time);
 }
