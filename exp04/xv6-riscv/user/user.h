@@ -49,6 +49,17 @@ void *memcpy(void *, const void *, uint);
 void* malloc(uint);
 void free(void*);
 
+// file system efficiency
+#define MAX_CALLS 1000
+struct file_efficiency_metrics {
+  uint64 file_write_duration[MAX_CALLS];
+  int file_write_count;
+  uint64 file_read_duration[MAX_CALLS];
+  int file_read_count;
+  uint64 file_delete_duration[MAX_CALLS];
+  int file_delete_count;
+};
+
 // random.c
 uint random_range(int, int);
 uint random(int);
@@ -60,14 +71,14 @@ void solve_shortest_paths(int);
 void run_cpu_bound_experiment(int);
 
 // io_bound.c
-void run_io_bound_experiment(int);
+void run_io_bound_experiment(int, int[2]);
 
 // random_write.c
-void swap_chars(int fd, int pos1, int pos2, int process_num);
-void random_write(int process_num);
+void swap_chars(int, int, int, struct file_efficiency_metrics*);
+void random_write(int[2], struct file_efficiency_metrics*);
 
 // metrics.c
-void get_metrics(int);
+void get_metrics(int[2]);
 
 #define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
 
@@ -80,3 +91,9 @@ struct mem_overhead {
 // Array para armazenar o throughput temporário a cada segundo
 extern struct mem_overhead mem_overhead_temp[MAX_ROUND_MEMORY_OVERHEAD];
 extern int mem_overhead_count;
+
+void clear_duration_count(struct file_efficiency_metrics*);
+void register_read_duration(uint64, struct file_efficiency_metrics*);
+void register_write_duration(uint64, struct file_efficiency_metrics*);
+void register_delete_duration(uint64, struct file_efficiency_metrics*);
+void calculate_file_efficiency(int[2]);

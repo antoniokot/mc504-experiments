@@ -9,6 +9,13 @@
 #include "user/user.h"
 
 int main (void) {
+  int fs_pipe_fd[2];
+  
+  if (pipe(fs_pipe_fd) < 0) {
+    printf("Erro ao criar o pipe\n");
+    exit(1);
+  }
+
   printf("\nRunning 30 rounds of experiments...\n");
 
   for(int i =  0; i < 30; i++) {
@@ -24,14 +31,25 @@ int main (void) {
     printf("Number of IO-Bound processes: %d\n", n_io_exp);
 
     run_cpu_bound_experiment(n_cpu_exp);
-    run_io_bound_experiment(n_io_exp);
+
+    run_io_bound_experiment(n_io_exp, fs_pipe_fd);
 
     printf("mem_overhead_count: %d\n", mem_overhead_count);
+    close(fs_pipe_fd[1]);
 
-    get_metrics(n_io_exp);
+    get_metrics(fs_pipe_fd);
 
     printf("\n======================================\n");
+
+    close(fs_pipe_fd[0]);
+
+    if (pipe(fs_pipe_fd) < 0) {
+      printf("Erro ao recriar o pipe\n");
+      exit(1);
+    }
   }
+  close(fs_pipe_fd[0]);
+  close(fs_pipe_fd[1]);
 
   return 0;
 }
