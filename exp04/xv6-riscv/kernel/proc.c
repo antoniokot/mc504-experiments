@@ -11,7 +11,6 @@
 #define MAX_FINISHED_PROCESSES 100 // Número máximo de processos
 #define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
 
-
 // throughput
 int t_put_temp[MAX_ROUND_THROUGHPUTS] = {0};
 int t_put_count = 0;
@@ -26,10 +25,6 @@ struct finished_proc_info {
 
 struct finished_proc_info finished_procs[MAX_FINISHED_PROCESSES];
 int finished_count = 0;
-
-// memory overhead
-uint64 max_memory_overhead = 0;
-uint64 min_memory_overhead = UINT_MAX;
 
 struct mem_overhead {
   int memory_access_time;   // Tempo total de acesso à memória
@@ -791,6 +786,7 @@ int throughput(void) {
   
   // Reseta o contador de throughput para a próxima rodada
   t_put_count = 0;
+
   return normalized_throughput;
 }
 
@@ -826,6 +822,9 @@ int moverhead(void) {
   int overhead = 0;
   int sum_memory = 0;
 
+  uint64 max_memory_overhead = 0;
+  uint64 min_memory_overhead = UINT_MAX;
+
   for(int i = 0; i < mem_overhead_count; i++) {
     struct mem_overhead mo = mem_overhead_temp[i];
 
@@ -848,18 +847,20 @@ int moverhead(void) {
 
   int avg_memory_overhead = sum_memory / mem_overhead_count;
 
-  int normalized_memory_overhead = SCALE - ((avg_memory_overhead - min_memory_overhead) * SCALE) / (max_memory_overhead - min_memory_overhead);
+  int normalized_memory_overhead = 0;
+  if (max_memory_overhead != min_memory_overhead) {
+    normalized_memory_overhead = SCALE - ((avg_memory_overhead - min_memory_overhead) * SCALE) / (max_memory_overhead - min_memory_overhead);
+  }
+  
   mem_overhead_count = 0;
 
   return normalized_memory_overhead;
-}
-
-void incremoverhcount(void) {
-  mem_overhead_count++;
 }
 
 void storemoverhead(int alloc, int free, int access) {
   mem_overhead_temp[mem_overhead_count].memory_access_time = access;
   mem_overhead_temp[mem_overhead_count].memory_free_time = free;
   mem_overhead_temp[mem_overhead_count].memory_alloc_time = alloc;
+
+  mem_overhead_count++;
 }

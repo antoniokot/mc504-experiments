@@ -8,9 +8,6 @@
 #define NUMBER_OF_ROUNDS 30
 #define TICKS_PER_SECOND 10
 
-struct mem_overhead mem_overhead_temp[MAX_ROUND_MEMORY_OVERHEAD];
-int mem_overhead_count = 0;
-
 int avg_perfomance = 0;
 
 // Função para imprimir valores de ponto flutuante com três casas decimais
@@ -97,8 +94,11 @@ void print_padded_int(uint64 num, int width) {
 
 void calculate_normalized_fs_efficiency(uint64 fs_efficiency, uint64 max_efficiency, uint64 min_efficiency) {
   if (max_efficiency != min_efficiency) { // Evita divisão por zero
-    uint64 fs_efficiency_norm = 1000 - ((fs_efficiency - min_efficiency) * 1000 / (max_efficiency - min_efficiency));
-    printf("Eficiência do sistema de arquivos normalizada (E_fs_norm): %ld.", fs_efficiency_norm / 1000);
+    int fs_efficiency_norm = SCALE - ((fs_efficiency - min_efficiency) * SCALE / (max_efficiency - min_efficiency));
+    
+    avg_perfomance += fs_efficiency_norm;
+
+    printf("Eficiência do sistema de arquivos normalizada (E_fs_norm): %d.", fs_efficiency_norm / SCALE);
     print_padded_int(fs_efficiency_norm % 1000, 3);
     printf("\n");
   } else {
@@ -160,6 +160,9 @@ void get_metrics(int fs_pipe_fd[2]) {
   calculate_file_efficiency(fs_pipe_fd);
   printf("- ");
   calculate_memory_overhead();
+  printf("\n-----------------------------------------\n");
   printf("\n- ");
   calculate_average_system_performance();
+
+  avg_perfomance = 0;
 }

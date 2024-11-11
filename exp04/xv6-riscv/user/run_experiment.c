@@ -22,8 +22,6 @@ int main (void) {
     printf("\n======================================\n");
     printf("\nRunning round number %d... \n\n", i+1);
 
-    mem_overhead_count = 0;
-
     int n_cpu_exp = random(8) + 6;      // random int from 6 to 14
     int n_io_exp = 20 - n_cpu_exp;
 
@@ -34,12 +32,9 @@ int main (void) {
 
     run_io_bound_experiment(n_io_exp, fs_pipe_fd);
 
-    printf("mem_overhead_count: %d\n", mem_overhead_count);
     close(fs_pipe_fd[1]);
 
     get_metrics(fs_pipe_fd);
-
-    printf("\n======================================\n");
 
     close(fs_pipe_fd[0]);
 

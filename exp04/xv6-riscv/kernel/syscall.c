@@ -106,7 +106,6 @@ extern uint64 sys_throughput(void);
 extern uint64 sys_fairness(void);
 extern uint64 sys_moverhead(void);
 extern uint64 sys_storemoverhead(int, int, int);
-extern uint64 sys_incremoverhcount(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -137,7 +136,6 @@ static uint64 (*syscalls[])(void) = {
 [SYS_fairness]sys_fairness,
 [SYS_moverhead]sys_moverhead,
 [SYS_storemoverhead] = (uint64 (*)()) sys_storemoverhead,
-[SYS_incremoverhcount]sys_incremoverhcount,
 };
 
 void

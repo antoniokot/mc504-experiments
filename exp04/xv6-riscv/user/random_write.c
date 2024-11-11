@@ -7,6 +7,10 @@
 #define PERMUTATIONS 50
 #define FILENAME "random_file.txt"
 
+int io_alloc_time = 0;
+int io_free_time = 0;
+int io_access_time = 0;
+
 char random_char() {
     return '!' + random(94);
 }
@@ -67,7 +71,7 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
     char *buffer = malloc(LINES * (CHAR_PER_LINE + 1));
     int end_alloc_time = uptime();
 
-    mem_overhead_temp[mem_overhead_count].memory_alloc_time += end_alloc_time - start_alloc_time;
+    io_alloc_time += end_alloc_time - start_alloc_time;
 
     int start_access_time = uptime();
     if (buffer == 0) {
@@ -89,14 +93,14 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
     uint64 end_write = uptime();
 
     int end_access_time = uptime(); 
-    mem_overhead_temp[mem_overhead_count].memory_access_time += end_access_time - start_access_time;
+    io_access_time += end_access_time - start_access_time;
 
     register_write_duration(end_write - start_write, file_efficiency_metrics);
 
     int start_free_time = uptime();
     free(buffer);
     int end_free_time = uptime();
-    mem_overhead_temp[mem_overhead_count].memory_free_time += end_free_time - start_free_time;
+    io_free_time += end_free_time - start_free_time;
 
     fd = open(FILENAME, O_RDWR);
     if (fd == -1) {
@@ -121,10 +125,5 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
     uint64 end_delete = uptime();
 
     register_delete_duration(end_delete - start_delete, file_efficiency_metrics);
-
-    int alloc_time = mem_overhead_temp[mem_overhead_count].memory_alloc_time;
-    int free_time = mem_overhead_temp[mem_overhead_count].memory_free_time;
-    int access_time = mem_overhead_temp[mem_overhead_count].memory_access_time;
-
-    storemoverhead(alloc_time, free_time, access_time);
+    storemoverhead(io_alloc_time, io_free_time, io_access_time);
 }

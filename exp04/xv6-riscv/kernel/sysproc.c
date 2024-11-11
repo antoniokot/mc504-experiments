@@ -186,8 +186,3 @@ uint64 sys_storemoverhead(void) {
   storemoverhead(arg1, arg2, arg3);
   return 0;
 }
-
-uint64 sys_incremoverhcount(void) {
-  incremoverhcount();
-  return 0;
-}

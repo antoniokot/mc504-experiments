@@ -110,7 +110,6 @@ int            throughput(void);
 int            fairness(void);
 int            moverhead(void);
 void            storemoverhead(int, int, int);
-void            incremoverhcount(void);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

@@ -27,7 +27,6 @@ int lseek(int fd, int offset, int whence);
 int throughput(void);
 int fairness(void);
 int moverhead(void);
-int incremoverhcount(void);
 int storemoverhead(int, int, int);
 
 // ulib.c
@@ -79,18 +78,6 @@ void random_write(int[2], struct file_efficiency_metrics*);
 
 // metrics.c
 void get_metrics(int[2]);
-
-#define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
-
-struct mem_overhead {
-  int memory_access_time;   // Tempo total de acesso à memória
-  int memory_alloc_time;    // Tempo total de alocação de memória
-  int memory_free_time;     // Tempo total de desalocação de memória
-};
-
-// Array para armazenar o throughput temporário a cada segundo
-extern struct mem_overhead mem_overhead_temp[MAX_ROUND_MEMORY_OVERHEAD];
-extern int mem_overhead_count;
 
 void clear_duration_count(struct file_efficiency_metrics*);
 void register_read_duration(uint64, struct file_efficiency_metrics*);
