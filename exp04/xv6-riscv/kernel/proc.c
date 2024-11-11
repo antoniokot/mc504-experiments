@@ -819,42 +819,27 @@ int fairness(void) {
 }
 
 int moverhead(void) {
-  int overhead = 0;
-  int sum_memory = 0;
-
-  uint64 max_memory_overhead = 0;
-  uint64 min_memory_overhead = UINT_MAX;
+  int t_access = 0;
+  int t_alloc = 0;
+  int t_free = 0;
 
   for(int i = 0; i < mem_overhead_count; i++) {
     struct mem_overhead mo = mem_overhead_temp[i];
 
-    overhead += mo.memory_access_time * SCALE / TICKS_PER_SECOND;
-    overhead += mo.memory_alloc_time * SCALE / TICKS_PER_SECOND;
-    overhead += mo.memory_free_time * SCALE / TICKS_PER_SECOND;
-
-    sum_memory += overhead;
-
-    if (overhead < min_memory_overhead) {
-      min_memory_overhead = overhead;
-    }
-
-    if (overhead > max_memory_overhead) {
-      max_memory_overhead = overhead;
-    }
-
-    overhead = 0;
+    t_access += mo.memory_access_time * SCALE / TICKS_PER_SECOND;
+    t_alloc += mo.memory_alloc_time * SCALE / TICKS_PER_SECOND;
+    t_free += mo.memory_free_time * SCALE / TICKS_PER_SECOND;
   }
 
-  int avg_memory_overhead = sum_memory / mem_overhead_count;
+  int avg_t_access = t_access / mem_overhead_count;
+  int avg_t_alloc = t_alloc / mem_overhead_count;
+  int avg_t_free = t_free / mem_overhead_count;
 
-  int normalized_memory_overhead = 0;
-  if (max_memory_overhead != min_memory_overhead) {
-    normalized_memory_overhead = SCALE - ((avg_memory_overhead - min_memory_overhead) * SCALE) / (max_memory_overhead - min_memory_overhead);
-  }
+  int memory_overhead = SCALE / avg_t_access + avg_t_alloc + avg_t_free;
   
   mem_overhead_count = 0;
 
-  return normalized_memory_overhead;
+  return memory_overhead;
 }
 
 void storemoverhead(int alloc, int free, int access) {

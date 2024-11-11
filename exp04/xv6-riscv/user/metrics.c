@@ -134,12 +134,12 @@ void calculate_fairness() {
 }
 
 void calculate_memory_overhead() {
-  int m_over_norm = moverhead();
+  int m_over = moverhead();
 
-  avg_perfomance += m_over_norm;
+  avg_perfomance += m_over;
 
-  printf("Overhead de memoria normalizado (M_over_norm): ");
-  print_fixed_point(m_over_norm);
+  printf("Overhead de memória (M_over): ");
+  print_fixed_point(m_over);
 }
 
 void calculate_average_system_performance() {
