@@ -108,11 +108,16 @@ void calculate_file_efficiency(int fs_pipe_fd[2]) {
   uint64 t_write = total_read_efficiency / total_processes;
   uint64 t_read = total_read_efficiency / total_processes;
   uint64 t_delete = total_delete_efficiency / total_processes;
-  uint64 inv_fs_efficiency = t_write + t_read + t_delete;
+
+  printf("\nt_write: %ld, t_read: %ld, t_delete: %ld\n", t_write, t_read, t_delete);
+
+  int inv_fs_efficiency = SCALE / t_write + t_read + t_delete;
+
+  avg_perfomance += inv_fs_efficiency;
 
   if (inv_fs_efficiency != 0) {
-    printf("Eficiência do sistema de arquivos (E_fs): %ld.", SCALE / inv_fs_efficiency);
-    print_padded_int((SCALE * SCALE) / inv_fs_efficiency, 3);
+    printf("Eficiência do sistema de arquivos (E_fs): ");
+    print_fixed_point(inv_fs_efficiency);
     printf("\n");
     return;
   }

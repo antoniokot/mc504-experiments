@@ -67,10 +67,10 @@ uint random(int);
 void solve_shortest_paths(int);
 
 // cpu_bound.c
-void run_cpu_bound_experiment(int);
+void run_cpu_bound_experiment();
 
 // io_bound.c
-void run_io_bound_experiment(int, int[2]);
+void run_io_bound_experiment(int[2]);
 
 // random_write.c
 void swap_chars(int, int, int, struct file_efficiency_metrics*);

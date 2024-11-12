@@ -445,9 +445,10 @@ wait(uint64 addr)
             pp->runtime = 0;
           }
 
+          completed_processes++;
+
           // Found one.
           pid = pp->pid;
-          completed_processes++;
           if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
                                   sizeof(pp->xstate)) < 0) {
             release(&pp->lock);
@@ -779,7 +780,7 @@ int throughput(void) {
   int t_put_avg = sum_throughput / t_put_count;
 
   // Calcula o throughput normalizado usando a fórmula
-  int normalized_throughput = 0;
+  int normalized_throughput = 1;
   if (t_put_max != t_put_min) {
     normalized_throughput = SCALE - ((t_put_avg - t_put_min) * SCALE) / (t_put_max - t_put_min);
   }
