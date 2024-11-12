@@ -2,7 +2,7 @@
 #include "kernel/fcntl.h"
 #include "user/user.h"
 
-uint64 get_file_system_efficiency(struct file_efficiency_metrics* file_efficiency_metrics) {
+void get_file_system_efficiency(struct file_efficiency_metrics* file_efficiency_metrics, uint64* fs_efficiencies) {
   uint64 total_read_duration = 0;
   uint64 total_write_duration = 0;
   uint64 total_delete_duration = 0;
@@ -21,7 +21,9 @@ uint64 get_file_system_efficiency(struct file_efficiency_metrics* file_efficienc
   uint64 write_efficiency = total_write_duration / file_efficiency_metrics->file_write_count;
   uint64 delete_efficiency = total_delete_duration / file_efficiency_metrics->file_delete_count;
   
-  return read_efficiency + write_efficiency + delete_efficiency;
+  fs_efficiencies[0] = read_efficiency;
+  fs_efficiencies[1] = write_efficiency;
+  fs_efficiencies[2] = delete_efficiency;
 }
 
 void run_io_bound_experiment(int num_process, int fs_pipe_fd[2]) {
@@ -36,8 +38,9 @@ void run_io_bound_experiment(int num_process, int fs_pipe_fd[2]) {
       struct file_efficiency_metrics* file_efficiency_metrics = (struct file_efficiency_metrics*) malloc(sizeof(struct file_efficiency_metrics));
       random_write(fs_pipe_fd, file_efficiency_metrics);
 
-      uint64 fs_efficiency = get_file_system_efficiency(file_efficiency_metrics);
-      write(fs_pipe_fd[1], &fs_efficiency, sizeof(fs_efficiency));
+      uint64 fs_efficiencies[3];
+      get_file_system_efficiency(file_efficiency_metrics, fs_efficiencies);
+      write(fs_pipe_fd[1], fs_efficiencies, sizeof(fs_efficiencies));
       free(file_efficiency_metrics);
 
       exit(0);

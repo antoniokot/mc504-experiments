@@ -92,36 +92,31 @@ void print_padded_int(uint64 num, int width) {
   printf("%s", buffer);
 }
 
-void calculate_normalized_fs_efficiency(uint64 fs_efficiency, uint64 max_efficiency, uint64 min_efficiency) {
-  if (max_efficiency != min_efficiency) { // Evita divisão por zero
-    int fs_efficiency_norm = SCALE - ((fs_efficiency - min_efficiency) * SCALE / (max_efficiency - min_efficiency));
-    
-    avg_perfomance += fs_efficiency_norm;
-
-    printf("Eficiência do sistema de arquivos normalizada (E_fs_norm): %d.", fs_efficiency_norm / SCALE);
-    print_padded_int(fs_efficiency_norm % 1000, 3);
-    printf("\n");
-  } else {
-    printf("Eficiência do sistema de arquivos (E_fs_norm): 1.000\n");
-  }
-}
-
 void calculate_file_efficiency(int fs_pipe_fd[2]) {
   int total_processes = 0;
-  uint64 total_efficiency = 0;
-  uint64 max_efficiency = 0;
-  uint64 min_efficiency = 2147483647;
-  uint64 partial_fs_efficiency;
-  while(read(fs_pipe_fd[0], &partial_fs_efficiency, sizeof(partial_fs_efficiency)) > 0) {
-    total_efficiency += partial_fs_efficiency;
-    if (partial_fs_efficiency > max_efficiency) max_efficiency = partial_fs_efficiency;
-    if (partial_fs_efficiency < min_efficiency) min_efficiency = partial_fs_efficiency;
+  uint64 total_read_efficiency = 0;
+  uint64 total_write_efficiency = 0;
+  uint64 total_delete_efficiency = 0;
+  uint64 partial_fs_efficiencies[3];
+  while(read(fs_pipe_fd[0], partial_fs_efficiencies, sizeof(partial_fs_efficiencies)) > 0) {
+    total_read_efficiency += partial_fs_efficiencies[0];
+    total_write_efficiency += partial_fs_efficiencies[1];
+    total_delete_efficiency += partial_fs_efficiencies[2];
     total_processes++;
   }
 
-  uint64 fs_efficiency = total_efficiency / total_processes;
+  uint64 t_write = total_read_efficiency / total_processes;
+  uint64 t_read = total_read_efficiency / total_processes;
+  uint64 t_delete = total_delete_efficiency / total_processes;
+  uint64 inv_fs_efficiency = t_write + t_read + t_delete;
 
-  calculate_normalized_fs_efficiency(fs_efficiency, max_efficiency, min_efficiency);
+  if (inv_fs_efficiency != 0) {
+    printf("Eficiência do sistema de arquivos (E_fs): %ld.", SCALE / inv_fs_efficiency);
+    print_padded_int((SCALE * SCALE) / inv_fs_efficiency, 3);
+    printf("\n");
+    return;
+  }
+  printf("Eficiência do sistema de arquivos (E_fs): 1.000\n");
 }
 
 void calculate_fairness() {
