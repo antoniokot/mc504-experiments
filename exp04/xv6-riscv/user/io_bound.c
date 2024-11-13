@@ -8,22 +8,18 @@ void get_file_system_efficiency(struct file_efficiency_metrics* file_efficiency_
   uint64 total_delete_duration = 0;
 
   for (int j = 0; j < file_efficiency_metrics->file_read_count; j++) {
-    total_read_duration += file_efficiency_metrics->file_read_duration[j] * 1000;
+    total_read_duration += file_efficiency_metrics->file_read_duration[j] * SCALE;
   }
   for (int j = 0; j < file_efficiency_metrics->file_write_count; j++) {
-    total_write_duration += file_efficiency_metrics->file_write_duration[j] * 1000;
+    total_write_duration += file_efficiency_metrics->file_write_duration[j] * SCALE;
   }
   for (int j = 0; j < file_efficiency_metrics->file_delete_count; j++) {
-    total_delete_duration += file_efficiency_metrics->file_delete_duration[j] * 1000;
+    total_delete_duration += file_efficiency_metrics->file_delete_duration[j] * SCALE;
   }
 
-  uint64 read_efficiency = total_read_duration / file_efficiency_metrics->file_read_count;
-  uint64 write_efficiency = total_write_duration / file_efficiency_metrics->file_write_count;
-  uint64 delete_efficiency = total_delete_duration / file_efficiency_metrics->file_delete_count;
-  
-  fs_efficiencies[0] = read_efficiency;
-  fs_efficiencies[1] = write_efficiency;
-  fs_efficiencies[2] = delete_efficiency;
+  fs_efficiencies[0] = total_read_duration;
+  fs_efficiencies[1] = total_write_duration;
+  fs_efficiencies[2] = total_delete_duration;
 }
 
 void run_io_bound_experiment(int fs_pipe_fd[2], int i_process) {

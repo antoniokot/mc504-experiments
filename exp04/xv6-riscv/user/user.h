@@ -50,6 +50,8 @@ void free(void*);
 
 // file system efficiency
 #define MAX_CALLS 1000
+#define SCALE 1000
+
 struct file_efficiency_metrics {
   uint64 file_write_duration[MAX_CALLS];
   int file_write_count;

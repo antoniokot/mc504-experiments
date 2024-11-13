@@ -3,7 +3,6 @@
 #include "user/user.h"
 #include <limits.h>
 
-#define SCALE 1000
 #define NUMBER_OF_PROCESSES 20
 #define NUMBER_OF_ROUNDS 30
 #define TICKS_PER_SECOND 10
@@ -110,7 +109,7 @@ void calculate_file_efficiency(int fs_pipe_fd[2]) {
   uint64 t_read = total_read_efficiency / total_processes;
   uint64 t_delete = total_delete_efficiency / total_processes;
 
-  int inv_fs_efficiency = (SCALE * 100) / (t_write + t_read + t_delete);
+  int inv_fs_efficiency = (SCALE * SCALE) / (t_write + t_read + t_delete);
 
   avg_perfomance += inv_fs_efficiency;
 
