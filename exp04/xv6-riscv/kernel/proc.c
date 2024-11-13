@@ -836,7 +836,7 @@ int moverhead(void) {
   int avg_t_alloc = t_alloc / mem_overhead_count;
   int avg_t_free = t_free / mem_overhead_count;
 
-  int memory_overhead = SCALE / avg_t_access + avg_t_alloc + avg_t_free;
+  int memory_overhead = (SCALE * SCALE) / (avg_t_access + avg_t_alloc + avg_t_free);
   
   mem_overhead_count = 0;
 

@@ -14,13 +14,11 @@ void run_experiment(int num_cpu, int num_io, int fs[2]) {
 
   while(n_cpu_exp + n_io_exp > 0) {
     if (n_cpu_exp > 0) {
-      printf("Rodando CPU-Bound\n");
       run_cpu_bound_experiment();
       n_cpu_exp--;
     }
     if (n_io_exp > 0) {
-      printf("Rodando IO-Bound\n");
-      run_io_bound_experiment(fs);
+      run_io_bound_experiment(fs, num_io - n_io_exp);
       n_io_exp--;
     }
   }

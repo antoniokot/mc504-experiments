@@ -26,14 +26,14 @@ void get_file_system_efficiency(struct file_efficiency_metrics* file_efficiency_
   fs_efficiencies[2] = delete_efficiency;
 }
 
-void run_io_bound_experiment(int fs_pipe_fd[2]) {
+void run_io_bound_experiment(int fs_pipe_fd[2], int i_process) {
   int pid = fork();
   if (pid < 0) {
     printf("Fork failed");
     exit(1);
   } else if (pid == 0) {
     struct file_efficiency_metrics* file_efficiency_metrics = (struct file_efficiency_metrics*) malloc(sizeof(struct file_efficiency_metrics));
-    random_write(fs_pipe_fd, file_efficiency_metrics);
+    random_write(fs_pipe_fd, i_process, file_efficiency_metrics);
 
     uint64 fs_efficiencies[3];
     get_file_system_efficiency(file_efficiency_metrics, fs_efficiencies);

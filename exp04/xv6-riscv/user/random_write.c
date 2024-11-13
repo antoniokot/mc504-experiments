@@ -5,11 +5,17 @@
 #define LINES 100
 #define CHAR_PER_LINE 100
 #define PERMUTATIONS 50
-#define FILENAME "random_file.txt"
 
 int io_alloc_time = 0;
 int io_free_time = 0;
 int io_access_time = 0;
+
+int i_process = 0;
+
+const char *files[] = {
+    "file0", "file1", "file2", "file3", "file4", "file5", "file6", 
+    "file7", "file8", "file9", "file10", "file11", "file12", "file13"
+};
 
 char random_char() {
     return '!' + random(94);
@@ -60,8 +66,14 @@ void swap_chars(int fd, int pos1, int pos2, struct file_efficiency_metrics* file
     register_write_duration(end_write - start_write, file_efficiency_metrics);
 }
 
-void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_efficiency_metrics) {
-    int fd = open(FILENAME, O_CREATE | O_WRONLY);
+void random_write(int fs_pipe_fd[2], int i_process, struct file_efficiency_metrics* file_efficiency_metrics) {
+    int start_access_time = uptime();
+    const char *filename = files[i_process];
+    int end_access_time = uptime();
+
+    io_access_time += end_access_time - start_access_time;
+
+    int fd = open(filename, O_CREATE | O_WRONLY);
     if (fd == -1) {
         printf("Error opening file\n");
         exit(1);
@@ -73,7 +85,7 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
 
     io_alloc_time += end_alloc_time - start_alloc_time;
 
-    int start_access_time = uptime();
+    start_access_time = uptime();
     if (buffer == 0) {
         printf("Error allocating memory\n");
         close(fd);
@@ -92,7 +104,7 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
     write(fd, buffer, LINES * (CHAR_PER_LINE + 1));
     uint64 end_write = uptime();
 
-    int end_access_time = uptime(); 
+    end_access_time = uptime(); 
     io_access_time += end_access_time - start_access_time;
 
     register_write_duration(end_write - start_write, file_efficiency_metrics);
@@ -102,7 +114,7 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
     int end_free_time = uptime();
     io_free_time += end_free_time - start_free_time;
 
-    fd = open(FILENAME, O_RDWR);
+    fd = open(filename, O_RDWR);
     if (fd == -1) {
         printf("Error reopening file\n");
         exit(1);
@@ -118,7 +130,7 @@ void random_write(int fs_pipe_fd[2], struct file_efficiency_metrics* file_effici
 
     close(fd);
     uint64 start_delete = uptime();
-    if (unlink(FILENAME) == -1) {
+    if (unlink(filename) == -1) {
         printf("Error deleting file\n");
         exit(1);
     }

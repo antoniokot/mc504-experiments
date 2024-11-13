@@ -70,11 +70,11 @@ void solve_shortest_paths(int);
 void run_cpu_bound_experiment();
 
 // io_bound.c
-void run_io_bound_experiment(int[2]);
+void run_io_bound_experiment(int[2], int);
 
 // random_write.c
 void swap_chars(int, int, int, struct file_efficiency_metrics*);
-void random_write(int[2], struct file_efficiency_metrics*);
+void random_write(int[2], int, struct file_efficiency_metrics*);
 
 // metrics.c
 void get_metrics(int[2]);
