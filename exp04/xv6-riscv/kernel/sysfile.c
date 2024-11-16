@@ -78,6 +78,7 @@ uint64 get_uptime(void) {
 uint64
 sys_read(void)
 {
+  struct proc *pr = myproc();
   struct file *f;
   int n;
   uint64 p;
@@ -86,6 +87,12 @@ sys_read(void)
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
     return -1;
+
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }
 
   int bytes_read = fileread(f, p, n);
 
@@ -95,6 +102,7 @@ sys_read(void)
 uint64
 sys_write(void)
 {
+  struct proc *pr = myproc();
   struct file *f;
   int n;
   uint64 p;
@@ -104,6 +112,12 @@ sys_write(void)
   if(argfd(0, 0, &f) < 0)
     return -1;
 
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }
+
   int bytes_written = filewrite(f, p, n);
   
   return bytes_written;
@@ -112,12 +126,20 @@ sys_write(void)
 uint64
 sys_close(void)
 {
+  struct proc *pr = myproc();
   int fd;
   struct file *f;
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
   myproc()->ofile[fd] = 0;
+
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }
+
   fileclose(f);
   return 0;
 }
@@ -203,6 +225,7 @@ isdirempty(struct inode *dp)
 uint64
 sys_unlink(void)
 {
+  struct proc *pr = myproc();
   struct inode *ip, *dp;
   struct dirent de;
   char name[DIRSIZ], path[MAXPATH];
@@ -210,6 +233,12 @@ sys_unlink(void)
 
   if(argstr(0, path, MAXPATH) < 0)
     return -1;
+
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }  
 
   begin_op();
   if((dp = nameiparent(path, name)) == 0){
@@ -319,6 +348,7 @@ create(char *path, short type, short major, short minor)
 uint64
 sys_open(void)
 {
+  struct proc *pr = myproc();
   char path[MAXPATH];
   int fd, omode;
   struct file *f;
@@ -328,6 +358,12 @@ sys_open(void)
   argint(1, &omode);
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
+
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }
 
   begin_op();
 
@@ -492,6 +528,7 @@ sys_exec(void)
 uint64
 sys_pipe(void)
 {
+  struct proc *pr = myproc();
   uint64 fdarray; // user pointer to array of two integers
   struct file *rf, *wf;
   int fd0, fd1;
@@ -500,6 +537,13 @@ sys_pipe(void)
   argaddr(0, &fdarray);
   if(pipealloc(&rf, &wf) < 0)
     return -1;
+
+  if(pr->priority > 0) {
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+  }
+
   fd0 = -1;
   if((fd0 = fdalloc(rf)) < 0 || (fd1 = fdalloc(wf)) < 0){
     if(fd0 >= 0)

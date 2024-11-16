@@ -11,6 +11,11 @@
 #define MAX_FINISHED_PROCESSES 100 // Número máximo de processos
 #define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
 
+#define NUM_QUEUES 3
+#define TIME_SLICE 10
+struct proc* queues[NUM_QUEUES][NPROC];
+int queue_size[NUM_QUEUES];
+
 // throughput
 int t_put_temp[MAX_ROUND_THROUGHPUTS] = {0};
 int t_put_count = 0;
@@ -157,6 +162,9 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->priority = 0;
+  p->time_slice =  TIME_SLICE;
+  add_to_queue(p, p->priority);
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
@@ -202,6 +210,8 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->priority = 0;
+  p->time_slice = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -266,6 +276,10 @@ void
 userinit(void)
 {
   struct proc *p;
+
+  for(int i = 0; i < NUM_QUEUES; i++) {
+    queue_size[i] = 0;
+  }
 
   p = allocproc();
   initproc = p;
@@ -343,6 +357,10 @@ fork(void)
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
+  np->priority = 0;
+  np->time_slice = TIME_SLICE;
+  add_to_queue(np, np->priority);
+
   pid = np->pid;
 
   release(&np->lock);
@@ -392,6 +410,8 @@ exit(int status)
       p->ofile[fd] = 0;
     }
   }
+
+  remove_from_queue(p, p->priority);
 
   begin_op();
   iput(p->cwd);
@@ -477,6 +497,28 @@ wait(uint64 addr)
   }
 }
 
+void
+add_to_queue(struct proc *p, int queue)
+{
+  queues[queue][queue_size[queue]] = p;
+  queue_size[queue]++;
+}
+
+void
+remove_from_queue(struct proc *p, int queue)
+{
+  int i;
+  for(i = 0; i < queue_size[queue]; i++) {
+    if(queues[queue][i] == p) {
+      break;
+    }
+  }
+  for(; i < queue_size[queue] - 1; i++) {
+    queues[queue][i] = queues[queue][i + 1];
+  }
+  queue_size[queue]--;
+}
+
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -489,34 +531,45 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  int current_queue = 0;
 
   c->proc = 0;
   for(;;){
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting.
     intr_on();
 
     int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    for(current_queue = 0; current_queue < NUM_QUEUES; current_queue++) {
+      for(int i = 0; i < queue_size[current_queue]; i++) {
+        p = queues[current_queue][i];
+        acquire(&p->lock);
+        if(p->state == RUNNABLE) {
+          // Switch to chosen process
+          p->state = RUNNING;
+          c->proc = p;
+          swtch(&c->context, &p->context);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+          // Process is done running for now
+          c->proc = 0;
+          found = 1;
+
+          // Update process priority and time slice
+          p->time_slice--;
+          if(p->time_slice <= 0) {
+            p->time_slice = TIME_SLICE;
+            if(p->priority < NUM_QUEUES - 1) {
+              // Move process to lower priority queue
+              remove_from_queue(p, current_queue);
+              p->priority++;
+              add_to_queue(p, p->priority);
+            }
+          }
+        }
+        release(&p->lock);
+        if(found) break;
       }
-      release(&p->lock);
+      if(found) break;
     }
     if(found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
       intr_on();
       asm volatile("wfi");
     }
@@ -556,7 +609,12 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
-    p->state = RUNNABLE;
+  p->state = RUNNABLE;
+  if(p->time_slice > 0 && p->priority > 0) {
+    remove_from_queue(p, p->priority);
+    p->priority--;
+    add_to_queue(p, p->priority);
+  }
   sched();
   release(&p->lock);
 }

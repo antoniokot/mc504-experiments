@@ -110,6 +110,8 @@ int            throughput(void);
 int            fairness(void);
 int            moverhead(void);
 void            storemoverhead(int, int, int);
+void            add_to_queue(struct proc*, int);
+void            remove_from_queue(struct proc*, int);
 
 // swtch.S
 void            swtch(struct context*, struct context*);
