@@ -105,6 +105,8 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint64 runtime;              // total runtime of process
+
+  int priority;
 };
 
 #define TICKS_PER_SECOND 10
