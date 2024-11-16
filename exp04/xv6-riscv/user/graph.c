@@ -44,7 +44,7 @@ int exists_edge(Node* adj_list[], int origin, int destination) {
   Node* temp = adj_list[origin];
   while (temp != NULL) {
     if (temp->destination == destination) {
-      return 1; // edge already exists
+      return 1;
     }
     temp = temp->next;
   }
@@ -64,9 +64,8 @@ void create_graph(Node* adj_list[], int num_vertex, int num_edges) {
     origin = random_range(0, num_vertex-1);
     destination = random_range(0, num_vertex-1);
 
-    // Not loop edge and egde does not already exist 
     if (origin != destination && !exists_edge(adj_list, origin, destination)) {
-      add_edge(adj_list, origin, destination); // add edge
+      add_edge(adj_list, origin, destination);
       countEgdes++;
     }
   }
@@ -88,7 +87,7 @@ GraphsList* create_graphs_list(int num_digraphs) {
 
   int start_access_time = uptime();
   for (int i = 0; i < num_digraphs; i++) {
-    int num_vertex = random_range(MIN_VERTEX, MAX_VERTEX); // 100 - 200 vértices -> 150 vértices [0, 150]
+    int num_vertex = random_range(MIN_VERTEX, MAX_VERTEX);
     int num_egdes = random_range(MIN_EDGES, MAX_EDGES);
 
     start_alloc_time = uptime();
@@ -103,7 +102,6 @@ GraphsList* create_graphs_list(int num_digraphs) {
       exit(1);
     }
 
-    // Initialize the adjacency list with NULL
     for (int j = 0; j < num_vertex; j++) {
       list[i][j] = NULL;
     }
@@ -161,7 +159,6 @@ void shortest_path(Node* graph[], int source, int num_vertex) {
     int u = closest(dist, processed, num_vertex);
     processed[u] = 1;
 
-    // adjacency list of u
     Node* curr = graph[u];
 
     while(curr != NULL) {

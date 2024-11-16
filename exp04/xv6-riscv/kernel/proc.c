@@ -489,34 +489,48 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  int last_scheduled = 0; // índice do último processo escalonado
 
   c->proc = 0;
   for(;;){
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting.
+    // o último processo a ser executado pode ter desabilitado interrupções
+    // ative-as para evitar um deadlock caso todos os processos estejam esperando.
     intr_on();
 
     int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
+
+    // itera sobre os processos a partir do último escalonado
+    for(int i = 0; i < NPROC; i++) {
+      int idx = (last_scheduled + i) % NPROC; // calcula o índice circular
+      p = &proc[idx];
+
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
+        // define o estado como RUNNING
         p->state = RUNNING;
         c->proc = p;
+        
+        // salva o contexto da CPU e carrega o contexto do processo
         swtch(&c->context, &p->context);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
+        // o processo terminou de executar por enquanto.
+        // ele deve ter alterado seu p->state antes de retornar.
         c->proc = 0;
         found = 1;
+
+        // atualiza o índice do último processo escalonado
+        last_scheduled = idx + 1;
       }
       release(&p->lock);
+
+      // sai do loop se um processo foi encontrado e escalonado
+      if (found) {
+        break;
+      }
     }
-    if(found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
+
+    if (found == 0) {
+      // Nenhum processo para executar; o núcleo entra em espera até uma interrupção.
       intr_on();
       asm volatile("wfi");
     }
