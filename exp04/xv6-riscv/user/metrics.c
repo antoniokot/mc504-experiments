@@ -65,32 +65,6 @@ void register_delete_duration(uint64 duration, struct file_efficiency_metrics* f
   file_efficiency_metrics->file_delete_duration[file_efficiency_metrics->file_delete_count++] = duration;
 }
 
-void print_padded_int(uint64 num, int width) {
-  char buffer[20];
-  int length = 0;
-  uint64 temp = num;
-  do {
-    temp /= 10;
-    length++;
-  } while (temp != 0);
-  int padding = width - length;
-  if (padding > 0) {
-    for (int i = 0; i < padding; i++) {
-      buffer[i] = '0';
-    }
-  }
-  int index = padding > 0 ? padding : 0;
-  temp = num;
-  do {
-    buffer[index + length - 1] = '0' + (temp % 10);
-    temp /= 10;
-    length--;
-  } while (length > 0);
-
-  buffer[width] = '\0';
-  printf("%s", buffer);
-}
-
 void calculate_file_efficiency(int fs_pipe_fd[2]) {
   int total_processes = 0;
   uint64 total_read_efficiency = 0;

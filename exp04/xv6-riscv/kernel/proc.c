@@ -149,7 +149,7 @@ allocproc(void)
     if(p->state == UNUSED) {
       goto found;
     } else {
-      release(&p->lock);
+    release(&p->lock);
     }
   }
   return 0;
@@ -447,6 +447,8 @@ wait(uint64 addr)
 
           completed_processes++;
 
+          // resto do código da função wait(), em proc.c
+
           // Found one.
           pid = pp->pid;
           if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
@@ -554,7 +556,7 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
-  p->state = RUNNABLE;
+    p->state = RUNNABLE;
   sched();
   release(&p->lock);
 }
@@ -623,11 +625,11 @@ wakeup(void *chan)
 
   for(p = proc; p < &proc[NPROC]; p++) {
     if(p != myproc()){
-      acquire(&p->lock);
+    acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
-        p->state = RUNNABLE;
-      }
-      release(&p->lock);
+      p->state = RUNNABLE;
+    }
+    release(&p->lock);
     }
   }
 }
@@ -763,7 +765,7 @@ int throughput(void) {
   int t_put_max = INT_MIN;
   int t_put_min = INT_MAX;
 
-  // Calcula t_put_max, t_put_min e soma dos throughputs para obter a média
+  // calcula t_put_max, t_put_min e soma dos throughputs para obter a média
   for (int i = 0; i < t_put_count; i++) {
     int current_t_put = t_put_temp[i] * SCALE;
 
@@ -776,16 +778,16 @@ int throughput(void) {
     }
   }
 
-  // Calcula o throughput médio
+  // throughput médio
   int t_put_avg = sum_throughput / t_put_count;
 
-  // Calcula o throughput normalizado usando a fórmula
+  // throughput normalizado usando a fórmula
   int normalized_throughput = 1;
   if (t_put_max != t_put_min) {
     normalized_throughput = SCALE - ((t_put_avg - t_put_min) * SCALE) / (t_put_max - t_put_min);
   }
   
-  // Reseta o contador de throughput para a próxima rodada
+  // reseta o contador de throughput para a próxima rodada
   t_put_count = 0;
 
   return normalized_throughput;
@@ -796,23 +798,24 @@ int fairness(void) {
   uint sum_x_squared = 0;
   int num_processes = 0;
 
-  // Itera sobre a lista de processos para calcular sum_x e sum_x_squared
+  // itera sobre a lista de processos para calcular sum_x e sum_x_squared
   for(int i = 0; i < finished_count; i++) {
     struct finished_proc_info fp = finished_procs[i]; 
     
     uint runtime_scaled = fixed_div(fp.runtime, TICKS_PER_SECOND);
     sum_x += runtime_scaled;
-    sum_x_squared += fixed_mul(runtime_scaled, runtime_scaled);  // Mantém precisão de ponto fixo
+    sum_x_squared += fixed_mul(runtime_scaled, runtime_scaled);  // mantém precisão de ponto fixo
     num_processes++;
   }
 
+  // reseta o contador de processos finalziados para a próxima rodada
   finished_count = 0;
 
-  // Calcula J_cpu com a fórmula
+  // calcula J_cpu com a fórmula
   if (num_processes > 0 && sum_x_squared > 0) {
     uint J_cpu_numerator = sum_x * sum_x;
     uint J_cpu_denominator = num_processes * sum_x_squared;
-    uint J_cpu = J_cpu_numerator / J_cpu_denominator; // Divisão com ponto fixo
+    uint J_cpu = J_cpu_numerator / J_cpu_denominator; // divisão com ponto fixo
     return J_cpu;
   } else {
     return 0;

@@ -172,20 +172,20 @@ clockintr()
   }
 
   struct proc *p = myproc();
-  if (p != NULL && p->state == RUNNING) { // Verifica se há um processo em execução
-    p->runtime++;                         // Incrementa o tempo de execução em 1 tick
+  if (p != NULL && p->state == RUNNING) { // verifica se há um processo em execução
+    p->runtime++;                         // incrementa o tempo de execução em 1 tick
   }
 
   if (ticks - last_tick_count >= TICKS_PER_SECOND) {
     last_tick_count = ticks;
 
-    // Armazena o throughput (processos finalizados) deste segundo
+    // armazena o throughput (processos finalizados) deste segundo
     if (t_put_count < MAX_ROUND_THROUGHPUTS) {
       t_put_temp[t_put_count] = completed_processes;
       t_put_count++;
     }
 
-    // Reseta o contador de processos finalizados para o próximo segundo
+    // reseta o contador de processos finalizados para o próximo segundo
     completed_processes = 0;
   }
 
