@@ -11,8 +11,6 @@
 #define MAX_FINISHED_PROCESSES 100 // Número máximo de processos
 #define MAX_ROUND_MEMORY_OVERHEAD 100 // Número máximo de medições de throughput por rodada
 
-#define NUM_QUEUES 3
-#define TIME_SLICE 10
 struct proc* queues[NUM_QUEUES][NPROC];
 int queue_size[NUM_QUEUES];
 

@@ -88,13 +88,16 @@ sys_read(void)
   if(argfd(0, 0, &f) < 0)
     return -1;
 
-  if(pr->priority > 0) {
+  int bytes_read = fileread(f, p, n);
+
+  if(bytes_read > 0 && pr->priority > 0) {
+    acquire(&pr->lock);
     remove_from_queue(pr, pr->priority);
     pr->priority--;
     add_to_queue(pr, pr->priority);
+    pr->time_slice = TIME_SLICE;  // Reset time slice
+    release(&pr->lock);
   }
-
-  int bytes_read = fileread(f, p, n);
 
   return bytes_read;
 }
@@ -112,13 +115,16 @@ sys_write(void)
   if(argfd(0, 0, &f) < 0)
     return -1;
 
-  if(pr->priority > 0) {
+  int bytes_written = filewrite(f, p, n);
+
+  if(bytes_written > 0 && pr->priority > 0) {
+    acquire(&pr->lock);
     remove_from_queue(pr, pr->priority);
     pr->priority--;
     add_to_queue(pr, pr->priority);
+    pr->time_slice = TIME_SLICE;  // Reset time slice
+    release(&pr->lock);
   }
-
-  int bytes_written = filewrite(f, p, n);
   
   return bytes_written;
 }
@@ -134,13 +140,17 @@ sys_close(void)
     return -1;
   myproc()->ofile[fd] = 0;
 
+  fileclose(f);
+
   if(pr->priority > 0) {
+    acquire(&pr->lock);
     remove_from_queue(pr, pr->priority);
     pr->priority--;
     add_to_queue(pr, pr->priority);
+    pr->time_slice = TIME_SLICE;  // Reset time slice
+    release(&pr->lock);
   }
 
-  fileclose(f);
   return 0;
 }
 
@@ -234,12 +244,6 @@ sys_unlink(void)
   if(argstr(0, path, MAXPATH) < 0)
     return -1;
 
-  if(pr->priority > 0) {
-    remove_from_queue(pr, pr->priority);
-    pr->priority--;
-    add_to_queue(pr, pr->priority);
-  }  
-
   begin_op();
   if((dp = nameiparent(path, name)) == 0){
     end_op();
@@ -277,6 +281,15 @@ sys_unlink(void)
   iunlockput(ip);
 
   end_op();
+
+  if(pr->priority > 0) {
+    acquire(&pr->lock);
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+    pr->time_slice = TIME_SLICE;  // Reset time slice
+    release(&pr->lock);
+  }
 
   return 0;
 
@@ -359,12 +372,6 @@ sys_open(void)
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
-  if(pr->priority > 0) {
-    remove_from_queue(pr, pr->priority);
-    pr->priority--;
-    add_to_queue(pr, pr->priority);
-  }
-
   begin_op();
 
   if(omode & O_CREATE){
@@ -417,6 +424,15 @@ sys_open(void)
 
   iunlock(ip);
   end_op();
+
+  if(pr->priority > 0) {
+    acquire(&pr->lock);
+    remove_from_queue(pr, pr->priority);
+    pr->priority--;
+    add_to_queue(pr, pr->priority);
+    pr->time_slice = TIME_SLICE;  // Reset time slice
+    release(&pr->lock);
+  }
 
   return fd;
 }
